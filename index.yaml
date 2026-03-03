@@ -1,4 +1,11 @@
 blueprints:
+  - id: podinfo
+    displayName: Podinfo
+    description: Go microservice template
+    category: miscellaneous
+    icon: podinfo
+    tags: [demo]
+    
   - id: cert-manager
     displayName: cert-manager
     description: Automated TLS certificate management for Kubernetes — integrates with Let's Encrypt and private CAs
