@@ -10,21 +10,21 @@ blueprints:
     displayName: cert-manager
     description: Automated TLS certificate management for Kubernetes — integrates with Let's Encrypt and private CAs
     category: security
-    icon: cert-manager
+    icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/cert-manager/icon/color/cert-manager-icon-color.svg
     tags: [tls, certificates, letsencrypt, security]
 
   - id: traefik
     displayName: Traefik
     description: Cloud-native reverse proxy and ingress controller with automatic HTTPS via Let's Encrypt
     category: networking
-    icon: traefik
+    icon: https://raw.githubusercontent.com/traefik/traefik/master/docs/content/assets/img/traefik.logo.png
     tags: [ingress, proxy, networking, loadbalancer]
 
   - id: metallb
     displayName: MetalLB
     description: Bare-metal load-balancer for Kubernetes — assigns external IPs on clusters without cloud load-balancers
     category: networking
-    icon: metallb
+    icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/metallb/icon/color/metallb-icon-color.svg
     tags: [loadbalancer, networking, bare-metal]
 
   - id: cilium
@@ -52,7 +52,7 @@ blueprints:
     displayName: Argo CD
     description: Declarative GitOps continuous delivery for Kubernetes — syncs your cluster state from Git
     category: gitops
-    icon: argocd
+    icon: argo
     tags: [gitops, cicd, deployment, continuous-delivery]
 
   - id: flux-operator
@@ -80,7 +80,7 @@ blueprints:
     displayName: External Secrets Operator
     description: Synchronizes secrets from AWS Secrets Manager, GCP Secret Manager, Vault, and others into Kubernetes
     category: security
-    icon: external-secrets
+    icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/external-secrets-operator/icon/color/eso-icon-color.svg
     tags: [secrets, security, vault, aws, gcp, azure]
 
   - id: harbor
@@ -94,7 +94,7 @@ blueprints:
     displayName: Kyverno
     description: Kubernetes-native policy engine — validates, mutates and generates resources using admission webhooks
     category: security
-    icon: kyverno
+    icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/kyverno/icon/color/kyverno-icon-color.svg
     tags: [policy, security, admission-control, compliance]
 
   - id: nfs-subdir-external-provisioner
