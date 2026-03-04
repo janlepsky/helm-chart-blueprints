@@ -16,7 +16,7 @@ spec:
     version: "3.13.0"
   install:
     release: metrics-server
-    namespace: kube-system
+    namespace: metrics-server
   values: |
     args:
       - --kubelet-insecure-tls
