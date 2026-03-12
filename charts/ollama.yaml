@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: HelmBlueprint
+metadata:
+  id: ollama
+  displayName: ollama
+  description: Model serving on your Kubernetes cluster.
+  category: AI
+  icon: https://artifacthub.io/image/5cd7a615-627a-43e5-a591-4f8bc2249128@1x
+  tags: [AI, ML, Model serving]
+spec:
+  repository:
+    name: otwld
+    url: https://helm.otwld.com/
+  chart:
+    name: otwld/ollama
+    version: "1.50.0"
+  install:
+    release: ollama
+    namespace: ollama
+  values: |
+    ollama:
+      models:
+        pull:
+          - llama2
+  
+    ingress:
+      enabled: true
+      hosts:
+      - host: ollama.domain.lan
+        paths:
+          - path: /
+            pathType: Prefix
