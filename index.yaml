@@ -1,4 +1,11 @@
 blueprints:
+  - id: ollama
+    displayName: Ollama
+    description: AI model serving on Kubernetes
+    category: AI/ML
+    icon: https://artifacthub.io/image/5cd7a615-627a-43e5-a591-4f8bc2249128@1x
+    tags: [AI/ML]
+    
   - id: podinfo
     displayName: Podinfo
     description: Go microservice template
