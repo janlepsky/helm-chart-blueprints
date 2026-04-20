@@ -13,7 +13,7 @@ spec:
     url: https://helm.otwld.com/
   chart:
     name: otwld/ollama
-    version: "1.50.0"
+    version: "1.54.0"
   install:
     release: ollama
     namespace: ollama
