@@ -117,3 +117,10 @@ blueprints:
     category: operations
     icon: renovate
     tags: [dependencies, automation, updates, devops]
+
+  - id: yopass
+    displayName: Yopass
+    description: Secure sharing of secrets, passwords and files via one-time, self-destructing encrypted links
+    category: security
+    icon: https://raw.githubusercontent.com/jhaals/yopass/master/logo/yopass.svg
+    tags: [secrets, security, encryption, passwords, sharing]
