@@ -1,6 +1,6 @@
 blueprints:
-  - id: container
-    displayName: Container
+  - id: container-starter
+    displayName: Container Starter
     description: Deploy any container image with just an image, a name and an optional hostname
     category: miscellaneous
     icon: kubernetes
