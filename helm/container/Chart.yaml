@@ -1,5 +1,5 @@
 apiVersion: v2
-name: container
+name: container-starter
 description: Deploy any container image on Kubernetes — provide an image, a name and optionally a hostname, and get a Deployment, Service and Ingress automatically.
 type: application
 version: 0.1.0
