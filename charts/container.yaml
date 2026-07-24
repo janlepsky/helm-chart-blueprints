@@ -1,8 +1,8 @@
 apiVersion: v1
 kind: HelmBlueprint
 metadata:
-  id: container
-  displayName: Container
+  id: container-starter
+  displayName: Container Starter
   description: Deploy any container image — just provide an image, a name and optionally a hostname. Deployment, Service and Ingress are generated automatically.
   category: miscellaneous
   icon: kubernetes
@@ -12,7 +12,7 @@ spec:
     name: janlepsky-apps
     url: https://janlepsky.github.io/helm-chart-blueprints
   chart:
-    name: janlepsky-apps/container
+    name: janlepsky-apps/container-starter
     version: "0.1.0"
   install:
     release: my-app
