@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "container.name" -}}
+{{- define "container-starter.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this
 (by the DNS naming spec). The release name is used as the app name.
 */}}
-{{- define "container.fullname" -}}
+{{- define "container-starter.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "container.chart" -}}
+{{- define "container-starter.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "container.labels" -}}
-helm.sh/chart: {{ include "container.chart" . }}
-{{ include "container.selectorLabels" . }}
+{{- define "container-starter.labels" -}}
+helm.sh/chart: {{ include "container-starter.chart" . }}
+{{ include "container-starter.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "container.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "container.name" . }}
+{{- define "container-starter.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "container-starter.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use.
 */}}
-{{- define "container.serviceAccountName" -}}
+{{- define "container-starter.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "container.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "container-starter.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

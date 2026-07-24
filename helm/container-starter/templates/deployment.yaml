@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "container.fullname" . }}
+  name: {{ include "container-starter.fullname" . }}
   labels:
-    {{- include "container.labels" . | nindent 4 }}
+    {{- include "container-starter.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      {{- include "container.selectorLabels" . | nindent 6 }}
+      {{- include "container-starter.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "container.labels" . | nindent 8 }}
+        {{- include "container-starter.labels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "container.serviceAccountName" . }}
+      serviceAccountName: {{ include "container-starter.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}

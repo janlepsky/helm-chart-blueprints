@@ -13,7 +13,7 @@ It is reachable at:
 A TLS certificate is being requested from cert-manager ClusterIssuer "{{ .Values.ingress.tls.clusterIssuer }}".
 It may take a minute to be issued.
 {{- else }}
-TLS is enabled using the certificate in Secret "{{ .Values.ingress.tls.secretName | default (printf "%s-tls" (include "container.fullname" .)) }}".
+TLS is enabled using the certificate in Secret "{{ .Values.ingress.tls.secretName | default (printf "%s-tls" (include "container-starter.fullname" .)) }}".
 {{- end }}
 {{- end }}
 {{- else }}
@@ -21,7 +21,7 @@ TLS is enabled using the certificate in Secret "{{ .Values.ingress.tls.secretNam
 No hostname was configured, so the app is only reachable inside the cluster.
 To reach it locally, run:
 
-  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "container.fullname" . }} 8080:{{ .Values.port }}
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "container-starter.fullname" . }} 8080:{{ .Values.port }}
 
 Then open http://localhost:8080
 
