@@ -1,0 +1,86 @@
+# =============================================================================
+# container — deploy any container image on Kubernetes.
+#
+# For developers: you normally only need to touch the values in this top block.
+# Everything else has sensible defaults and can be left untouched.
+#
+# The application name is the Helm *release name* — it names the Deployment,
+# Service, Ingress and ServiceAccount automatically. No need to set it here.
+# =============================================================================
+
+# --- Container image (required) ---
+image:
+  repository: nginx
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# --- Port the application listens on inside the container ---
+# Also used as the Service port and the Ingress backend port.
+port: 80
+
+# --- Expose the app from outside the cluster via an Ingress ---
+# Set enabled: true and a host to get a public hostname.
+ingress:
+  enabled: false
+  host: ""                 # e.g. my-app.example.com
+  className: ""            # e.g. "traefik" or "nginx"; empty = cluster default
+  path: /
+  pathType: Prefix
+  annotations: {}
+
+# --- Environment variables for your app ---
+env: []
+  # - name: LOG_LEVEL
+  #   value: info
+
+# --- Number of pod replicas ---
+replicas: 1
+
+# --- Resource requests and limits ---
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# =============================================================================
+# Advanced — rarely changed.
+# =============================================================================
+
+service:
+  type: ClusterIP
+
+# Secrets used to pull images from private registries.
+imagePullSecrets: []
+  # - name: my-registry-secret
+
+# Override the generated resource names (defaults to the release name).
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# Pod / container security contexts (passed through as-is when set).
+podSecurityContext: {}
+securityContext: {}
+
+# Health probes. Left empty by default so arbitrary images don't crash-loop
+# on a probe they can't answer. Provide a standard probe spec to enable.
+livenessProbe: {}
+  # httpGet:
+  #   path: /
+  #   port: 80
+readinessProbe: {}
+  # httpGet:
+  #   path: /
+  #   port: 80
+
+# Extra pod scheduling controls.
+nodeSelector: {}
+tolerations: []
+affinity: {}

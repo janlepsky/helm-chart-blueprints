@@ -1,0 +1,23 @@
+Your application "{{ .Release.Name }}" has been deployed.
+
+{{- if and .Values.ingress.enabled .Values.ingress.host }}
+
+It is reachable at:
+
+  http://{{ .Values.ingress.host }}{{ .Values.ingress.path }}
+
+(Make sure DNS for {{ .Values.ingress.host }} points at your ingress controller.)
+{{- else }}
+
+No hostname was configured, so the app is only reachable inside the cluster.
+To reach it locally, run:
+
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "container.fullname" . }} 8080:{{ .Values.port }}
+
+Then open http://localhost:8080
+
+To expose it publicly, set ingress.enabled=true and ingress.host=<your-hostname>.
+{{- end }}
+
+Image:    {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}
+Replicas: {{ .Values.replicas }}
