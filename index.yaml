@@ -1,4 +1,11 @@
 blueprints:
+  - id: container
+    displayName: Container
+    description: Deploy any container image with just an image, a name and an optional hostname
+    category: miscellaneous
+    icon: kubernetes
+    tags: [container, deployment, app, custom]
+
   - id: ollama
     displayName: Ollama
     description: AI model serving on Kubernetes

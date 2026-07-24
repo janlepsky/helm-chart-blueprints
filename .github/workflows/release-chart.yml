@@ -1,0 +1,43 @@
+name: Release Helm Chart
+
+# Packages the charts under helm/ and publishes them to the gh-pages branch,
+# which GitHub Pages serves as a Helm repository at
+# https://janlepsky.github.io/helm-chart-blueprints
+#
+# One-time setup: create an empty `gh-pages` branch and enable GitHub Pages
+# (Settings -> Pages -> Source: branch `gh-pages`, folder /).
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'helm/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        with:
+          charts_dir: helm
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
