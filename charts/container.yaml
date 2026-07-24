@@ -26,10 +26,14 @@ spec:
     # Port your application listens on
     port: 80
 
-    # Set enabled: true and a host to expose the app publicly
+    # Set enabled: true and a host to expose the app publicly.
+    # For automatic HTTPS, set tls.enabled: true and a cert-manager ClusterIssuer.
     ingress:
       enabled: false
       host: ""
+      tls:
+        enabled: false
+        clusterIssuer: ""   # e.g. letsencrypt-prod
 
     # Optional: environment variables, replicas and resources
     env: []

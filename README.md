@@ -85,6 +85,8 @@ Developers only provide:
 - **Image** — `image.repository` / `image.tag`
 - **App name** — the Helm release name (names the Deployment, Service, Ingress, …)
 - **Hostname** — `ingress.enabled` + `ingress.host` (optional)
+- **HTTPS** — optional automatic TLS for the hostname via a cert-manager
+  ClusterIssuer (`ingress.tls.enabled` + `ingress.tls.clusterIssuer`)
 
 Optionally also **port**, **environment variables**, **replicas** and **resources**.
 Everything else (Service, selector labels, ServiceAccount, Ingress wiring) is

@@ -1,12 +1,21 @@
 Your application "{{ .Release.Name }}" has been deployed.
 
 {{- if and .Values.ingress.enabled .Values.ingress.host }}
+{{- $scheme := ternary "https" "http" .Values.ingress.tls.enabled }}
 
 It is reachable at:
 
-  http://{{ .Values.ingress.host }}{{ .Values.ingress.path }}
+  {{ $scheme }}://{{ .Values.ingress.host }}{{ .Values.ingress.path }}
 
 (Make sure DNS for {{ .Values.ingress.host }} points at your ingress controller.)
+{{- if .Values.ingress.tls.enabled }}
+{{- if .Values.ingress.tls.clusterIssuer }}
+A TLS certificate is being requested from cert-manager ClusterIssuer "{{ .Values.ingress.tls.clusterIssuer }}".
+It may take a minute to be issued.
+{{- else }}
+TLS is enabled using the certificate in Secret "{{ .Values.ingress.tls.secretName | default (printf "%s-tls" (include "container.fullname" .)) }}".
+{{- end }}
+{{- end }}
 {{- else }}
 
 No hostname was configured, so the app is only reachable inside the cluster.

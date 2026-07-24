@@ -27,6 +27,12 @@ ingress:
   path: /
   pathType: Prefix
   annotations: {}
+  # Automatic HTTPS for the host via cert-manager. Requires cert-manager
+  # installed in the cluster. Leave disabled for plain HTTP.
+  tls:
+    enabled: false
+    clusterIssuer: ""      # cert-manager ClusterIssuer, e.g. "letsencrypt-prod" → issues the cert automatically
+    secretName: ""         # optional: bring your own cert Secret; defaults to <release-name>-tls
 
 # --- Environment variables for your app ---
 env: []
