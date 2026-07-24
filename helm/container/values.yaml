@@ -1,5 +1,5 @@
 # =============================================================================
-# container — deploy any container image on Kubernetes.
+# container starter — deploy any container image on Kubernetes.
 #
 # For developers: you normally only need to touch the values in this top block.
 # Everything else has sensible defaults and can be left untouched.
