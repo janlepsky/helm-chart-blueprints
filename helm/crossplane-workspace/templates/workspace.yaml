@@ -5,31 +5,30 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     {{- include "crossplane-workspace.labels" . | nindent 4 }}
+    managed-by: crossplane-opentofu
   {{- with .Values.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-  forProvider:
-    source: {{ required "workspace.source is required (Inline or Remote)" .Values.workspace.source }}
-    entrypoint: {{ .Values.workspace.entrypoint | quote }}
-    remotePullPolicy: {{ .Values.workspace.remotePullPolicy }}
-    module: |
-      {{- required "workspace.module is required" .Values.workspace.module | nindent 6 }}
-    {{- with .Values.workspace.vars }}
-    vars:
-      {{- toYaml . | nindent 6 }}
-    {{- end }}
-    {{- with .Values.workspace.varmap }}
-    varmap:
-      {{- toYaml . | nindent 6 }}
-    {{- end }}
-  managementPolicies:
-    {{- toYaml .Values.managementPolicies | nindent 4 }}
   providerConfigRef:
-    kind: {{ .Values.workspace.providerConfigRef.kind }}
-    name: {{ required "workspace.providerConfigRef.name is required" .Values.workspace.providerConfigRef.name }}
-  {{- if .Values.workspace.writeConnectionSecretToRef.enabled }}
+    kind: ClusterProviderConfig
+    name: azure-avm
+  forProvider:
+    source: Remote
+    module: git::https://github.com/Azure/terraform-azurerm-avm-res-resources-resourcegroup.git?ref=v0.4.0
+    remotePullPolicy: IfNotPresent
+    vars:
+      - key: name
+        value: {{ .Values.name }}
+      - key: location
+        value: {{ .Values.location }}
+      - key: enable_telemetry
+        value: "false"
+    {{- with .Values.tags }}
+    varmap:
+      tags:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
   writeConnectionSecretToRef:
-    name: {{ include "crossplane-workspace.connectionSecretName" . }}
-  {{- end }}
+    name: {{ .Values.name }}

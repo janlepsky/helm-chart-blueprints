@@ -17,63 +17,9 @@ spec:
   install:
     release: example-azure-rg
     namespace: default
-  values: |
-    workspace:
-      # Inline OpenTofu/Terraform module. The azurerm provider and its
-      # credentials are injected by the referenced ClusterProviderConfig.
-      source: Inline
-      module: |
-        variable "name" {
-          type = string
-        }
-
-        variable "location" {
-          type = string
-        }
-
-        variable "tags" {
-          type    = map(string)
-          default = {}
-        }
-
-        resource "azurerm_resource_group" "this" {
-          name     = var.name
-          location = var.location
-          tags     = var.tags
-        }
-
-        output "resource_group_id" {
-          value = azurerm_resource_group.this.id
-        }
-
-        output "resource_group_name" {
-          value = azurerm_resource_group.this.name
-        }
-
-        output "location" {
-          value = azurerm_resource_group.this.location
-        }
-
-      # Simple string inputs — edit these to change what gets created.
-      vars:
-        - key: name
-          value: rg-crossplane-tofu-demo
-        - key: location
-          value: westeurope
-
-      # Typed inputs (maps/lists). Tags applied to the resource group.
-      varmap:
-        tags:
-          environment: demo
-          managed-by: crossplane-opentofu
-
-      # Azure credentials / backend used to run the module.
-      providerConfigRef:
-        kind: ClusterProviderConfig
-        name: azure
-
-      # Module outputs (resource_group_id, name, location) land in this Secret.
-      # Left empty → defaults to "opentofu-workspace-<release-name>".
-      writeConnectionSecretToRef:
-        enabled: true
-        name: ""
+  values:
+    name: "my-resource"
+    location: "westeurope"
+    tags:
+      environment: demo
+      managed-by: crossplane-opentofu

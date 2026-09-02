@@ -1,8 +1,8 @@
 Crossplane Workspace "{{ include "crossplane-workspace.fullname" . }}" has been applied
 to namespace "{{ .Release.Namespace }}".
 
-Source:         {{ .Values.workspace.source }}
-Provider config: {{ .Values.workspace.providerConfigRef.kind }}/{{ .Values.workspace.providerConfigRef.name }}
+Resource group: {{ .Values.name }} ({{ .Values.location }})
+Provider config: ClusterProviderConfig/azure-avm
 
 Crossplane's OpenTofu provider now reconciles this Workspace. Watch its status:
 
@@ -16,8 +16,7 @@ Wait until it reports SYNCED=True and READY=True:
 If it does not become Ready, describe it to see the provider events / errors:
 
   kubectl -n {{ .Release.Namespace }} describe workspace.opentofu.m.upbound.io {{ include "crossplane-workspace.fullname" . }}
-{{ if .Values.workspace.writeConnectionSecretToRef.enabled }}
-Module outputs are written to Secret "{{ include "crossplane-workspace.connectionSecretName" . }}":
 
-  kubectl -n {{ .Release.Namespace }} get secret {{ include "crossplane-workspace.connectionSecretName" . }} -o yaml
-{{- end }}
+Module outputs are written to Secret "{{ .Values.name }}":
+
+  kubectl -n {{ .Release.Namespace }} get secret {{ .Values.name }} -o yaml
