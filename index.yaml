@@ -24,6 +24,29 @@ entries:
   crossplane-workspace:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2026-09-02T12:13:55.547918723Z"
+    description: Deploy a Crossplane OpenTofu/Terraform Workspace from a template
+      — provide an inline HCL module or a remote git source plus variables, and get
+      a managed opentofu.m.upbound.io Workspace that provisions your infrastructure.
+    digest: d7d82574d2ceab66f581284529bd0e9765dd7a61fabce2f19735bd86441017e3
+    keywords:
+    - crossplane
+    - opentofu
+    - terraform
+    - workspace
+    - infrastructure
+    - iac
+    maintainers:
+    - name: janlepsky
+    name: crossplane-workspace
+    sources:
+    - https://github.com/janlepsky/helm-chart-blueprints
+    type: application
+    urls:
+    - https://github.com/janlepsky/helm-chart-blueprints/releases/download/crossplane-workspace-0.1.1/crossplane-workspace-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2026-09-02T09:01:24.01124602Z"
     description: Deploy a Crossplane OpenTofu/Terraform Workspace from a template
       — provide an inline HCL module or a remote git source plus variables, and get
@@ -45,4 +68,4 @@ entries:
     urls:
     - https://github.com/janlepsky/helm-chart-blueprints/releases/download/crossplane-workspace-0.1.0/crossplane-workspace-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-02T09:01:24.011250358Z"
+generated: "2026-09-02T12:13:55.547924175Z"
