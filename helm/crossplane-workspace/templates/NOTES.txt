@@ -1,0 +1,23 @@
+Crossplane Workspace "{{ include "crossplane-workspace.fullname" . }}" has been applied
+to namespace "{{ .Release.Namespace }}".
+
+Source:         {{ .Values.workspace.source }}
+Provider config: {{ .Values.workspace.providerConfigRef.kind }}/{{ .Values.workspace.providerConfigRef.name }}
+
+Crossplane's OpenTofu provider now reconciles this Workspace. Watch its status:
+
+  kubectl -n {{ .Release.Namespace }} get workspace.opentofu.m.upbound.io {{ include "crossplane-workspace.fullname" . }} -o wide
+
+Wait until it reports SYNCED=True and READY=True:
+
+  kubectl -n {{ .Release.Namespace }} wait --for=condition=Ready \
+    workspace.opentofu.m.upbound.io/{{ include "crossplane-workspace.fullname" . }} --timeout=5m
+
+If it does not become Ready, describe it to see the provider events / errors:
+
+  kubectl -n {{ .Release.Namespace }} describe workspace.opentofu.m.upbound.io {{ include "crossplane-workspace.fullname" . }}
+{{ if .Values.workspace.writeConnectionSecretToRef.enabled }}
+Module outputs are written to Secret "{{ include "crossplane-workspace.connectionSecretName" . }}":
+
+  kubectl -n {{ .Release.Namespace }} get secret {{ include "crossplane-workspace.connectionSecretName" . }} -o yaml
+{{- end }}

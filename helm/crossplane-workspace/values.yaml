@@ -1,0 +1,79 @@
+# =============================================================================
+# crossplane-workspace — deploy a Crossplane OpenTofu/Terraform Workspace.
+#
+# This generic chart renders a single
+#   opentofu.m.upbound.io/v1beta1 Workspace
+# managed resource. Crossplane's OpenTofu provider then runs the module
+# (inline HCL or a remote git source) and reconciles the real infrastructure.
+#
+# For most templates you only need to touch the values in this top block.
+# The Workspace name is the Helm *release name* — no need to set it here.
+# =============================================================================
+
+workspace:
+  # --- Where the OpenTofu/Terraform module comes from (required) ---
+  # Inline  → `module` holds the HCL source directly.
+  # Remote  → `module` is a module reference, e.g. a git URL with a ref.
+  source: Inline
+
+  # For source=Inline: the full HCL module as a literal block.
+  # For source=Remote: a single module reference string, e.g.
+  #   git::https://github.com/org/repo.git?ref=v1.0.0
+  module: |
+    variable "greeting" {
+      type    = string
+      default = "hello"
+    }
+
+    output "greeting" {
+      value = var.greeting
+    }
+
+  # Only pulled for source=Remote. Always | IfNotPresent
+  remotePullPolicy: Always
+
+  # Optional sub-directory / entrypoint within the module. "" = module root.
+  entrypoint: ""
+
+  # --- Module input variables ---
+  # Simple string variables (rendered as spec.forProvider.vars).
+  vars: []
+    # - key: name
+    #   value: my-resource
+
+  # Complex/typed variables — maps and lists (rendered as
+  # spec.forProvider.varmap). Use this for anything that isn't a plain string.
+  varmap: {}
+    # tags:
+    #   environment: demo
+
+  # --- Which credentials / backend the workspace uses ---
+  # kind: ClusterProviderConfig (cluster-scoped) or ProviderConfig (namespaced).
+  providerConfigRef:
+    kind: ClusterProviderConfig
+    name: default
+
+  # --- Where OpenTofu outputs are written (as a Kubernetes Secret) ---
+  # Every module output lands in this Secret in the release namespace.
+  writeConnectionSecretToRef:
+    enabled: true
+    # Defaults to "opentofu-workspace-<release-name>" when left empty.
+    name: ""
+
+# =============================================================================
+# Advanced — rarely changed.
+# =============================================================================
+
+# Which Crossplane management policies apply to the Workspace.
+# ["*"] = full lifecycle management (create, update, delete). Restrict this to
+# e.g. ["Observe"] to import/observe without letting Crossplane mutate.
+managementPolicies:
+  - "*"
+
+# Override the generated Workspace name (defaults to the release name).
+nameOverride: ""
+fullnameOverride: ""
+
+# Extra annotations/labels to set on the Workspace resource.
+annotations: {}
+labels: {}

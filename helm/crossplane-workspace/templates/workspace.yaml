@@ -1,0 +1,35 @@
+apiVersion: opentofu.m.upbound.io/v1beta1
+kind: Workspace
+metadata:
+  name: {{ include "crossplane-workspace.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "crossplane-workspace.labels" . | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  forProvider:
+    source: {{ required "workspace.source is required (Inline or Remote)" .Values.workspace.source }}
+    entrypoint: {{ .Values.workspace.entrypoint | quote }}
+    remotePullPolicy: {{ .Values.workspace.remotePullPolicy }}
+    module: |
+      {{- required "workspace.module is required" .Values.workspace.module | nindent 6 }}
+    {{- with .Values.workspace.vars }}
+    vars:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .Values.workspace.varmap }}
+    varmap:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  managementPolicies:
+    {{- toYaml .Values.managementPolicies | nindent 4 }}
+  providerConfigRef:
+    kind: {{ .Values.workspace.providerConfigRef.kind }}
+    name: {{ required "workspace.providerConfigRef.name is required" .Values.workspace.providerConfigRef.name }}
+  {{- if .Values.workspace.writeConnectionSecretToRef.enabled }}
+  writeConnectionSecretToRef:
+    name: {{ include "crossplane-workspace.connectionSecretName" . }}
+  {{- end }}

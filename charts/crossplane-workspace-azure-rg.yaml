@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: HelmBlueprint
+metadata:
+  id: workspace-azure-rg
+  displayName: Azure Resource Group
+  description: Provision an Azure Resource Group via Crossplane's OpenTofu provider. A ready-to-edit template Workspace — change the name, location and tags and deploy. Backed by the generic crossplane-workspace chart.
+  category: infrastructure
+  icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/crossplane/icon/color/crossplane-icon-color.svg
+  tags: [crossplane, opentofu, terraform, azure, iac, infrastructure]
+spec:
+  repository:
+    name: janlepsky-apps
+    url: https://janlepsky.github.io/helm-chart-blueprints
+  chart:
+    name: janlepsky-apps/crossplane-workspace
+    version: "0.1.0"
+  install:
+    release: example-azure-rg
+    namespace: default
+  values: |
+    workspace:
+      # Inline OpenTofu/Terraform module. The azurerm provider and its
+      # credentials are injected by the referenced ClusterProviderConfig.
+      source: Inline
+      module: |
+        variable "name" {
+          type = string
+        }
+
+        variable "location" {
+          type = string
+        }
+
+        variable "tags" {
+          type    = map(string)
+          default = {}
+        }
+
+        resource "azurerm_resource_group" "this" {
+          name     = var.name
+          location = var.location
+          tags     = var.tags
+        }
+
+        output "resource_group_id" {
+          value = azurerm_resource_group.this.id
+        }
+
+        output "resource_group_name" {
+          value = azurerm_resource_group.this.name
+        }
+
+        output "location" {
+          value = azurerm_resource_group.this.location
+        }
+
+      # Simple string inputs — edit these to change what gets created.
+      vars:
+        - key: name
+          value: rg-crossplane-tofu-demo
+        - key: location
+          value: westeurope
+
+      # Typed inputs (maps/lists). Tags applied to the resource group.
+      varmap:
+        tags:
+          environment: demo
+          managed-by: crossplane-opentofu
+
+      # Azure credentials / backend used to run the module.
+      providerConfigRef:
+        kind: ClusterProviderConfig
+        name: azure
+
+      # Module outputs (resource_group_id, name, location) land in this Secret.
+      # Left empty → defaults to "opentofu-workspace-<release-name>".
+      writeConnectionSecretToRef:
+        enabled: true
+        name: ""

@@ -19,7 +19,14 @@ blueprints:
     category: miscellaneous
     icon: podinfo
     tags: [demo]
-    
+
+  - id: workspace-azure-rg
+    displayName: Azure Resource Group
+    description: Provision an Azure Resource Group via Crossplane's OpenTofu provider — an editable template Workspace backed by the generic crossplane-workspace chart
+    category: infrastructure
+    icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/crossplane/icon/color/crossplane-icon-color.svg
+    tags: [crossplane, opentofu, terraform, azure, iac, infrastructure]
+
   - id: cert-manager
     displayName: cert-manager
     description: Automated TLS certificate management for Kubernetes — integrates with Let's Encrypt and private CAs
