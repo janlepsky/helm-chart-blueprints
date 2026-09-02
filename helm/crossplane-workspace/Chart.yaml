@@ -2,7 +2,7 @@ apiVersion: v2
 name: crossplane-workspace
 description: Deploy a Crossplane OpenTofu/Terraform Workspace from a template — provide an inline HCL module or a remote git source plus variables, and get a managed opentofu.m.upbound.io Workspace that provisions your infrastructure.
 type: application
-version: 0.1.1
+version: 0.1.2
 appVersion: "1.0.0"
 keywords:
   - crossplane

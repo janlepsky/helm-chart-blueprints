@@ -1,4 +1,3 @@
-name: "my-resource"
 location: "westeurope"
 tags:
   environment: demo

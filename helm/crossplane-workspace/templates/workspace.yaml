@@ -20,7 +20,7 @@ spec:
     remotePullPolicy: IfNotPresent
     vars:
       - key: name
-        value: {{ .Values.name }}
+        value: {{ .Release.Name }}
       - key: location
         value: {{ .Values.location }}
       - key: enable_telemetry
@@ -31,4 +31,4 @@ spec:
         {{- toYaml . | nindent 8 }}
     {{- end }}
   writeConnectionSecretToRef:
-    name: {{ .Values.name }}
+    name: {{ .Release.Name }}
