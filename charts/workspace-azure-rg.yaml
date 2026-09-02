@@ -13,7 +13,7 @@ spec:
     url: https://janlepsky.github.io/helm-chart-blueprints
   chart:
     name: janlepsky-apps/crossplane-workspace
-    version: "0.1.0"
+    version: "0.1.1"
   install:
     release: example-azure-rg
     namespace: default
