@@ -5,7 +5,7 @@ metadata:
   displayName: Azure Resource Group
   description: Provision an Azure Resource Group via Crossplane's OpenTofu provider. A ready-to-edit template Workspace — change the name, location and tags and deploy. Backed by the generic crossplane-workspace chart.
   category: infrastructure
-  icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/crossplane/icon/color/crossplane-icon-color.svg
+  icon: https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg
   tags: [crossplane, opentofu, terraform, azure, iac, infrastructure]
 spec:
   repository:
