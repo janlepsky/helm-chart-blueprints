@@ -21,6 +21,30 @@ entries:
     urls:
     - container-starter-0.1.0.tgz
     version: 0.1.0
+  crossplane-swa:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-09-07T14:07:24.264364227Z"
+    description: Deploy a Crossplane OpenTofu/Terraform Workspace from a template
+      — provide an inline HCL module or a remote git source plus variables, and get
+      a managed opentofu.m.upbound.io Workspace that provisions your infrastructure.
+    digest: 31fcff893a7494667224d6dfc818784710fcf65624cc929cbf395b1950be1c65
+    keywords:
+    - crossplane
+    - opentofu
+    - terraform
+    - workspace
+    - infrastructure
+    - iac
+    maintainers:
+    - name: janlepsky
+    name: crossplane-swa
+    sources:
+    - https://github.com/janlepsky/helm-chart-blueprints
+    type: application
+    urls:
+    - https://github.com/janlepsky/helm-chart-blueprints/releases/download/crossplane-swa-0.1.0/crossplane-swa-0.1.0.tgz
+    version: 0.1.0
   crossplane-workspace:
   - apiVersion: v2
     appVersion: 1.0.0
@@ -91,4 +115,4 @@ entries:
     urls:
     - https://github.com/janlepsky/helm-chart-blueprints/releases/download/crossplane-workspace-0.1.0/crossplane-workspace-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-02T12:31:42.179954296Z"
+generated: "2026-09-07T14:07:24.264384721Z"
