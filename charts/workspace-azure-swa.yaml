@@ -22,7 +22,7 @@ spec:
     url: https://janlepsky.github.io/helm-chart-blueprints
   chart:
     name: janlepsky-apps/crossplane-swa
-    version: "0.1.0"
+    version: "0.1.1"
   install:
     release: example-azure-static-web-app
     namespace: default

@@ -23,10 +23,10 @@ spec:
         value: {{ .Release.Name }}
       - key: location
         value: {{ .Values.location }}
+      - key: resource_group_name
+        value: "rg-crossplane-test"
       - key: enable_telemetry
         value: "false"
-      - key: sku_name
-        value: "Free"
     {{- with .Values.tags }}
     varmap:
       tags:
