@@ -12,7 +12,7 @@ blueprints:
     category: AI/ML
     icon: https://artifacthub.io/image/5cd7a615-627a-43e5-a591-4f8bc2249128@1x
     tags: [AI/ML]
-    
+
   - id: podinfo
     displayName: Podinfo
     description: Go microservice template
@@ -23,6 +23,13 @@ blueprints:
   - id: workspace-azure-rg
     displayName: Azure Resource Group
     description: Provision an Azure Resource Group via Crossplane's OpenTofu provider — an editable template Workspace backed by the generic crossplane-workspace chart
+    category: infrastructure
+    icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/crossplane/icon/color/crossplane-icon-color.svg
+    tags: [crossplane, opentofu, terraform, azure, iac, infrastructure]
+
+  - id: workspace-azure-swa
+    displayName: Azure Static Web App
+    description: Provision an Azure Static Web App via Crossplane's OpenTofu provider
     category: infrastructure
     icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/crossplane/icon/color/crossplane-icon-color.svg
     tags: [crossplane, opentofu, terraform, azure, iac, infrastructure]
