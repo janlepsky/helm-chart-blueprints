@@ -27,13 +27,6 @@ blueprints:
     icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/crossplane/icon/color/crossplane-icon-color.svg
     tags: [crossplane, opentofu, terraform, azure, iac, infrastructure]
 
-  - id: workspace-azure-swa
-    displayName: Azure Static Web App
-    description: Provision an Azure Static Web App via Crossplane's OpenTofu provider
-    category: infrastructure
-    icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/crossplane/icon/color/crossplane-icon-color.svg
-    tags: [crossplane, opentofu, terraform, azure, iac, infrastructure]
-
   - id: cert-manager
     displayName: cert-manager
     description: Automated TLS certificate management for Kubernetes — integrates with Let's Encrypt and private CAs
