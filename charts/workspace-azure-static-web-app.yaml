@@ -27,7 +27,6 @@ spec:
     release: example-azure-static-web-app
     namespace: default
   values:
-    name: "my-static-web-app"
     location: "westeurope"
     tags:
       environment: demo

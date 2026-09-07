@@ -18,7 +18,6 @@ spec:
     release: example-azure-rg
     namespace: default
   values:
-    name: "my-resource"
     location: "westeurope"
     tags:
       environment: demo
