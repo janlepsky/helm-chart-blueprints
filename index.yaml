@@ -138,6 +138,25 @@ entries:
     urls:
     - https://github.com/janlepsky/helm-chart-blueprints/releases/download/crossplane-workspace-0.1.0/crossplane-workspace-0.1.0.tgz
     version: 0.1.0
+  custom-helm-chart:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-09-10T20:56:26.200026951Z"
+    description: Provision a custom Helm Chart. Define input values freely. It uses
+      oauth2-proxy as a sidecar.
+    digest: 497c621c6aeb094f5c1f76a58c3384cbd413867fb4d028094ec23ab011dc6d8b
+    keywords:
+    - helm
+    - custom
+    maintainers:
+    - name: janlepsky
+    name: custom-helm-chart
+    sources:
+    - https://github.com/janlepsky/helm-chart-blueprints
+    type: application
+    urls:
+    - https://github.com/janlepsky/helm-chart-blueprints/releases/download/custom-helm-chart-0.1.0/custom-helm-chart-0.1.0.tgz
+    version: 0.1.0
   generic-helm-chart:
   - apiVersion: v2
     appVersion: 1.0.0
@@ -155,4 +174,4 @@ entries:
     urls:
     - https://github.com/janlepsky/helm-chart-blueprints/releases/download/generic-helm-chart-0.1.0/generic-helm-chart-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-10T18:25:52.276364595Z"
+generated: "2026-09-10T20:56:26.200046622Z"
