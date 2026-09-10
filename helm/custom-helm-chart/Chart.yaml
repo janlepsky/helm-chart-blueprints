@@ -1,0 +1,13 @@
+apiVersion: v2
+name: custom-helm-chart
+description: Provision a custom Helm Chart. Define input values freely. It uses oauth2-proxy as a sidecar.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - helm
+  - custom
+maintainers:
+  - name: janlepsky
+sources:
+  - https://github.com/janlepsky/helm-chart-blueprints

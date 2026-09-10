@@ -1,0 +1,27 @@
+{{- if .Values.oauth2Proxy.enabled }}
+{{- $name := include "app.name" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+spec:
+  selector:
+    {{- include "app.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: 4180
+      targetPort: 4180
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ $name }}-oauth2-proxy-cookie
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+type: Opaque
+data:
+  # WARNING: if oauth2Proxy.cookieSecret is left blank, this regenerates on every
+  # `helm upgrade`, logging out active sessions. Pin it in values.yaml to avoid that.
+  cookie-secret: {{ .Values.oauth2Proxy.cookieSecret | default (randAlphaNum 32) | b64enc }}
+{{- end }}

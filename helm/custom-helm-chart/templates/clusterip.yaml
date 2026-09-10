@@ -1,0 +1,23 @@
+{{- /* ClusterIP service is only needed when oauth2Proxy is disabled and the ingress or clusterip is requested */ -}}
+{{- if and (not .Values.oauth2Proxy.enabled) (or .Values.clusterip.enabled .Values.ingress.enabled) }}
+{{- $name := include "app.name" . -}}
+{{- $labels := include "app.labels" . -}}
+{{- $selectorLabels := include "app.selectorLabels" . -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- if .Values.clusterip.labels }}
+    {{- toYaml .Values.clusterip.labels | nindent 4 }}
+    {{- else }}
+    {{- $labels | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    {{- $selectorLabels | nindent 4 }}
+  ports:
+    - protocol: {{ .Values.clusterip.protocol }}
+      port: {{ .Values.clusterip.port }}
+      targetPort: {{ .Values.application.port }}
+{{- end }}

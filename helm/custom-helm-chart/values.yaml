@@ -1,0 +1,137 @@
+image:
+  registry: "docker.io"
+  repository: ~
+  tag: ~
+  pullPolicy: "IfNotPresent"
+
+imagePullSecrets: []
+
+application:
+  replicas: 1
+  revisionHistoryLimit: 1
+  annotations: {}
+
+  strategy: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+  # -- override the container entrypoint
+  command: []
+
+  # -- override the container command arguments
+  args: []
+
+  # -- additional labels to be placed on the deployment
+  additionalLabels: {}
+
+  # -- default port for the application
+  port: 8080
+
+  probe:
+    # -- Special port for probes, defaults to application.port if not set
+    port: ~
+    path: /api/_health
+    startup:
+      enabled: true
+      # -- path for startup probes, defaults to application.probe.path if not set
+      path: ~
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 60
+      failureThreshold: 12
+    readiness:
+      enabled: true
+      # -- path for readiness probes, defaults to application.probe.path if not set
+      path: ~
+      initialDelaySeconds: 0
+      periodSeconds: 10
+      timeoutSeconds: 1
+      failureThreshold: 3
+    liveness:
+      enabled: true
+      # -- path for liveness probes, defaults to application.probe.path if not set
+      path: ~
+      initialDelaySeconds: 0
+      periodSeconds: 10
+      timeoutSeconds: 1
+      failureThreshold: 3
+
+automountServiceAccountToken: false
+
+securityContext:
+  pod: {}
+  container: {}
+
+resources: {}
+
+clusterip:
+  enabled: false
+  port: 8080
+  protocol: TCP
+  labels: {}
+
+ingress:
+  enabled: false
+  ingressClassName: "contour"
+  labels: {}
+  annotations: {}
+
+labels: {}
+env: []
+volumeMounts: []
+volumes: []
+initContainers: []
+
+# -- inline ConfigMaps to create and mount into the container
+# Each entry creates a ConfigMap and mounts it at mountPath (defaults to /config/<name>)
+# configMaps:
+#   - name: myconfig
+#     mountPath: /config/myconfig  # optional
+#     data:
+#       key1: value1
+#       key2: value2
+configMaps: []
+
+appName: ~
+baseDomain: ~
+
+entraSync:
+  enabled: false
+  # -- Name of the Secret containing client-id, client-secret, tenant-id
+  secretName: entra-sync-credentials
+  # -- Object ID of the shared Entra app registration to patch
+  appObjectId: "00000000-0000-0000-0000-000000000000"
+  #
+  # -- Create the automation service principal
+  # az ad sp create-for-rbac --name "entra-redirect-sync" \
+  # --years 2 \
+  # --query "{client-id:appId, client-secret:password, tenant-id:tenant}"
+  #
+  #
+  # kubectl create secret generic entra-sync-credentials \
+  # --from-literal=client-id=<appId> \
+  # --from-literal=client-secret=<password> \
+  # --from-literal=tenant-id=<tenant>
+
+oauth2Proxy:
+  enabled: true
+  image: "quay.io/oauth2-proxy/oauth2-proxy:v7.6.0"
+  # -- Azure AD tenant ID for OIDC issuer URL
+  tenantId: ~
+  # -- Name of the Secret containing OAUTH2_PROXY_CLIENT_ID and OAUTH2_PROXY_CLIENT_SECRET
+  # clientSecretName: ~
+  #
+  # This Secrets needs to be in the namespace
+  # apiVersion: v1
+  # kind: Secret
+  # metadata:
+  #   name: app-oauth2-client
+  # type: Opaque
+  # stringData:
+  #   OAUTH2_PROXY_CLIENT_ID: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  #   OAUTH2_PROXY_CLIENT_SECRET: "your-azure-app-client-secret"
+
+  # -- Base64-encodable cookie secret (min 16 bytes). Leave blank to auto-generate
+  # (WARNING: auto-generated value changes on every helm upgrade, logging out active sessions)
+  cookieSecret: ~

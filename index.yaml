@@ -34,6 +34,13 @@ blueprints:
     icon: https://helm.sh/img/helm.svg
     tags: [helm]
 
+  - id: custom-helm-chart
+    displayName: Custom Helm Chart
+    description: Provision a custom Helm Chart. Define input values freely. It uses oauth2-proxy as a sidecar.
+    category: general
+    icon: https://helm.sh/img/helm.svg
+    tags: [helm, custom]
+
   - id: cert-manager
     displayName: cert-manager
     description: Automated TLS certificate management for Kubernetes — integrates with Let's Encrypt and private CAs
