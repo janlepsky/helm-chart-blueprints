@@ -1,0 +1,12 @@
+apiVersion: v2
+name: generic-helm-chart
+description: Provision a generic Helm Chart. Define input values freely.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - helm
+maintainers:
+  - name: janlepsky
+sources:
+  - https://github.com/janlepsky/helm-chart-blueprints

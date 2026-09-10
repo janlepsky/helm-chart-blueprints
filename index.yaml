@@ -27,6 +27,13 @@ blueprints:
     icon: https://upload.wikimedia.org/wikipedia/commons/f/fa/Microsoft_Azure.svg
     tags: [crossplane, opentofu, terraform, azure, iac, infrastructure]
 
+  - id: generic-helm-chart
+    displayName: Generic Helm Chart
+    description: Provision a generic Helm Chart. Define input values freely.
+    category: general
+    icon: https://helm.sh/img/helm.svg
+    tags: [helm]
+
   - id: cert-manager
     displayName: cert-manager
     description: Automated TLS certificate management for Kubernetes — integrates with Let's Encrypt and private CAs

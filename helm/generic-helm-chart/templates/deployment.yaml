@@ -1,0 +1,141 @@
+{{- $name := include "app.name" . -}}
+{{- $labels := include "app.labels" . -}}
+{{- $selectorLabels := include "app.selectorLabels" . -}}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- $labels | nindent 4 }}
+    {{- if .Values.application.additionalLabels }}
+    {{- toYaml .Values.application.additionalLabels | nindent 4 }}
+    {{- end }}
+  {{- if .Values.application.annotations }}
+  annotations:
+    {{- toYaml .Values.application.annotations | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.application.replicas }}
+  revisionHistoryLimit: {{ .Values.application.revisionHistoryLimit }}
+  strategy:
+    type: {{ .Values.application.strategy }}
+    {{- if eq .Values.application.strategy "RollingUpdate" }}
+    rollingUpdate:
+      {{- toYaml .Values.application.rollingUpdate | nindent 6 }}
+    {{- end }}
+  selector:
+    matchLabels:
+      {{- $selectorLabels | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- $labels | nindent 8 }}
+        {{- if .Values.application.additionalLabels }}
+        {{- toYaml .Values.application.additionalLabels | nindent 8 }}
+        {{- end }}
+      {{- if .Values.application.annotations }}
+      annotations:
+        {{- toYaml .Values.application.annotations | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- if .Values.securityContext.pod }}
+      securityContext:
+        {{- toYaml .Values.securityContext.pod | nindent 8 }}
+      {{- end }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
+      {{- end }}
+      automountServiceAccountToken: {{ .Values.automountServiceAccountToken }}
+      containers:
+        - name: {{ $name }}
+          image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.application.command }}
+          command:
+          {{- toYaml .Values.application.command | nindent 12 }}
+          {{- end }}
+          {{- if .Values.application.args }}
+          args:
+          {{- toYaml .Values.application.args | nindent 12 }}
+          {{- end }}
+          {{- if .Values.securityContext.container }}
+          securityContext:
+          {{- toYaml .Values.securityContext.container | nindent 12 }}
+          {{- end }}
+          {{- if .Values.resources }}
+          resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.env }}
+          env:
+          {{- toYaml .Values.env | nindent 12 }}
+          {{- end }}
+          {{- if or .Values.volumeMounts .Values.persistence.enabled .Values.configMaps }}
+          volumeMounts:
+          {{- if .Values.volumeMounts }}
+          {{- toYaml .Values.volumeMounts | nindent 12 }}
+          {{- end }}
+          {{- if .Values.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+          {{- end }}
+          {{- range .Values.configMaps }}
+            - name: configmap-{{ .name }}
+              mountPath: {{ .mountPath | default (printf "/config/%s" .name) }}
+              readOnly: true
+          {{- end }}
+          {{- end }}
+          ports:
+            - containerPort: {{ .Values.application.port }}
+          {{- if .Values.application.probe.startup.enabled }}
+          startupProbe:
+            initialDelaySeconds: {{ .Values.application.probe.startup.initialDelaySeconds }}
+            periodSeconds: {{ .Values.application.probe.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.application.probe.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.application.probe.startup.failureThreshold }}
+            httpGet:
+              path: {{ .Values.application.probe.startup.path | default .Values.application.probe.path }}
+              port: {{ .Values.application.probe.port | default .Values.application.port }}
+          {{- end }}
+          {{- if .Values.application.probe.liveness.enabled }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.application.probe.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.application.probe.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.application.probe.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.application.probe.liveness.failureThreshold }}
+            httpGet:
+              path: {{ .Values.application.probe.liveness.path | default .Values.application.probe.path }}
+              port: {{ .Values.application.probe.port | default .Values.application.port }}
+          {{- end }}
+          {{- if .Values.application.probe.readiness.enabled }}
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.application.probe.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.application.probe.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.application.probe.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.application.probe.readiness.failureThreshold }}
+            httpGet:
+              path: {{ .Values.application.probe.readiness.path | default .Values.application.probe.path }}
+              port: {{ .Values.application.probe.port | default .Values.application.port }}
+          {{- end }}
+      {{- if .Values.initContainers }}
+      initContainers:
+      {{- toYaml .Values.initContainers | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.volumes .Values.persistence.enabled .Values.configMaps }}
+      volumes:
+      {{- if .Values.volumes }}
+      {{- toYaml .Values.volumes | nindent 8 }}
+      {{- end }}
+      {{- if .Values.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistence.existingClaim | default (include "app.name" .) }}
+      {{- end }}
+      {{- range .Values.configMaps }}
+        - name: configmap-{{ .name }}
+          configMap:
+            name: {{ $name }}-{{ .name }}
+      {{- end }}
+      {{- end }}
