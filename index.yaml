@@ -138,4 +138,21 @@ entries:
     urls:
     - https://github.com/janlepsky/helm-chart-blueprints/releases/download/crossplane-workspace-0.1.0/crossplane-workspace-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-07T14:27:28.061102342Z"
+  generic-helm-chart:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-09-10T18:25:52.276341683Z"
+    description: Provision a generic Helm Chart. Define input values freely.
+    digest: 251cf91b00eae56a135c46984a2f3f1735b1eb67fe17166aa1e8861bbac183dc
+    keywords:
+    - helm
+    maintainers:
+    - name: janlepsky
+    name: generic-helm-chart
+    sources:
+    - https://github.com/janlepsky/helm-chart-blueprints
+    type: application
+    urls:
+    - https://github.com/janlepsky/helm-chart-blueprints/releases/download/generic-helm-chart-0.1.0/generic-helm-chart-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-09-10T18:25:52.276364595Z"
