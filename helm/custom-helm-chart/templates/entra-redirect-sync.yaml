@@ -12,48 +12,72 @@ data:
     #!/bin/sh
     set -e
 
+    echo "[entra-sync] Starting redirect URI sync"
+    echo "[entra-sync] APP_OBJECT_ID=$APP_OBJECT_ID"
+    echo "[entra-sync] REDIRECT_URI=$REDIRECT_URI"
+    echo "[entra-sync] AZURE_TENANT_ID=$AZURE_TENANT_ID"
+    echo "[entra-sync] AZURE_CLIENT_ID=$AZURE_CLIENT_ID"
+
+    echo "[entra-sync] Logging in as service principal..."
     az login --service-principal \
       -u "$AZURE_CLIENT_ID" \
       -p "$AZURE_CLIENT_SECRET" \
       --tenant "$AZURE_TENANT_ID" \
-      --allow-no-subscriptions > /dev/null
+      --allow-no-subscriptions
+    echo "[entra-sync] Login successful"
 
+    echo "[entra-sync] Fetching current redirect URIs for app $APP_OBJECT_ID..."
     CURRENT_URIS=$(az ad app show --id "$APP_OBJECT_ID" --query "web.redirectUris" -o json)
+    echo "[entra-sync] Current URIs: $CURRENT_URIS"
 
     if echo "$CURRENT_URIS" | jq -e --arg uri "$REDIRECT_URI" 'index($uri)' > /dev/null; then
-      echo "Redirect URI already present, nothing to do: $REDIRECT_URI"
+      echo "[entra-sync] Redirect URI already present, nothing to do: $REDIRECT_URI"
       exit 0
     fi
 
     NEW_URIS=$(echo "$CURRENT_URIS" | jq --arg uri "$REDIRECT_URI" '. + [$uri] | unique')
+    echo "[entra-sync] New URI list will be: $NEW_URIS"
 
+    echo "[entra-sync] Updating app registration..."
     az ad app update --id "$APP_OBJECT_ID" \
       --web-redirect-uris $(echo "$NEW_URIS" | jq -r '.[]')
 
-    echo "Added redirect URI: $REDIRECT_URI"
+    echo "[entra-sync] Successfully added redirect URI: $REDIRECT_URI"
   remove-redirect-uri.sh: |
     #!/bin/sh
     set -e
 
+    echo "[entra-remove] Starting redirect URI removal"
+    echo "[entra-remove] APP_OBJECT_ID=$APP_OBJECT_ID"
+    echo "[entra-remove] REDIRECT_URI=$REDIRECT_URI"
+    echo "[entra-remove] AZURE_TENANT_ID=$AZURE_TENANT_ID"
+    echo "[entra-remove] AZURE_CLIENT_ID=$AZURE_CLIENT_ID"
+
+    echo "[entra-remove] Logging in as service principal..."
     az login --service-principal \
       -u "$AZURE_CLIENT_ID" \
       -p "$AZURE_CLIENT_SECRET" \
       --tenant "$AZURE_TENANT_ID" \
-      --allow-no-subscriptions > /dev/null
+      --allow-no-subscriptions
+    echo "[entra-remove] Login successful"
 
+    echo "[entra-remove] Fetching current redirect URIs for app $APP_OBJECT_ID..."
     CURRENT_URIS=$(az ad app show --id "$APP_OBJECT_ID" --query "web.redirectUris" -o json)
+    echo "[entra-remove] Current URIs: $CURRENT_URIS"
 
     if ! echo "$CURRENT_URIS" | jq -e --arg uri "$REDIRECT_URI" 'index($uri)' > /dev/null; then
-      echo "Redirect URI not present, nothing to do: $REDIRECT_URI"
+      echo "[entra-remove] Redirect URI not present, nothing to do: $REDIRECT_URI"
       exit 0
     fi
 
     NEW_URIS=$(echo "$CURRENT_URIS" | jq --arg uri "$REDIRECT_URI" '[.[] | select(. != $uri)]')
+    echo "[entra-remove] New URI list will be: $NEW_URIS"
 
+    echo "[entra-remove] Updating app registration..."
     az ad app update --id "$APP_OBJECT_ID" \
       --web-redirect-uris $(echo "$NEW_URIS" | jq -r '.[]')
 
-    echo "Removed redirect URI: $REDIRECT_URI"
+    echo "[entra-remove] Successfully removed redirect URI: $REDIRECT_URI"
 ---
 apiVersion: batch/v1
 kind: Job
