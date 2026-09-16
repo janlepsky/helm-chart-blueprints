@@ -91,7 +91,7 @@ spec:
             - name: APP_OBJECT_ID
               value: {{ .Values.entraSync.appObjectId | quote }}
             - name: REDIRECT_URI
-              value: "https://{{ .Values.appName }}.{{ .Values.baseDomain }}/oauth2/callback"
+              value: "https://{{ .Values.application.name }}.{{ .Values.application.domain }}/oauth2/callback"
           volumeMounts:
             - name: script
               mountPath: /scripts
@@ -137,7 +137,7 @@ spec:
             - name: APP_OBJECT_ID
               value: {{ .Values.entraSync.appObjectId | quote }}
             - name: REDIRECT_URI
-              value: "https://{{ .Values.appName }}.{{ .Values.baseDomain }}/oauth2/callback"
+              value: "https://{{ .Values.application.name }}.{{ .Values.application.domain }}/oauth2/callback"
           volumeMounts:
             - name: script
               mountPath: /scripts

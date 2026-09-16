@@ -1,6 +1,6 @@
 {{- $name := include "app.name" . -}}
 {{- $labels := include "app.labels" . -}}
-{{- $host := printf "%s.%s" .Values.appName .Values.baseDomain -}}
+{{- $host := printf "%s.%s" .Values.application.name .Values.application.domain -}}
 
 {{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
@@ -35,5 +35,5 @@ spec:
   tls:
     - hosts:
         - {{ $host }}
-      secretName: {{ printf "%s-%s-tls" .Values.appName (replace "." "-" .Values.baseDomain) }}
+      secretName: {{ printf "%s-%s-tls" .Values.application.name (replace "." "-" .Values.application.domain) }}
 {{- end }}

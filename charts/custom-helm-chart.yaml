@@ -13,20 +13,16 @@ spec:
     url: https://janlepsky.github.io/helm-chart-blueprints
   chart:
     name: janlepsky-apps/custom-helm-chart
-    version: "0.1.0"
+    version: "0.1.1"
   install:
     release: custom-helm-chart
     namespace: default
   values:
-    image:
-      registry: "docker.io"
-      repository: ~
-      tag: ~
-      pullPolicy: "IfNotPresent"
-
-    imagePullSecrets: []
-
     application:
+      name: example
+      domain: example.com
+      port: 8080
+
       replicas: 1
       revisionHistoryLimit: 1
       annotations: {}
@@ -45,37 +41,56 @@ spec:
       # -- additional labels to be placed on the deployment
       additionalLabels: {}
 
-      # -- default port for the application
-      port: 8080
-
+      # Disable all probes
       probe:
-        # -- Special port for probes, defaults to application.port if not set
-        port: ~
-        path: /api/_health
         startup:
-          enabled: true
-          # -- path for startup probes, defaults to application.probe.path if not set
-          path: ~
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 60
-          failureThreshold: 12
+          enabled: false
         readiness:
-          enabled: true
-          # -- path for readiness probes, defaults to application.probe.path if not set
-          path: ~
-          initialDelaySeconds: 0
-          periodSeconds: 10
-          timeoutSeconds: 1
-          failureThreshold: 3
+          enabled: false
         liveness:
-          enabled: true
-          # -- path for liveness probes, defaults to application.probe.path if not set
-          path: ~
-          initialDelaySeconds: 0
-          periodSeconds: 10
-          timeoutSeconds: 1
-          failureThreshold: 3
+          enabled: false
+
+    image:
+      registry: "docker.io"
+      repository: ~
+      tag: ~
+      pullPolicy: "IfNotPresent"
+
+    imagePullSecrets: []
+
+    ingress:
+      enabled: true
+      ingressClassName: contour
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-prod-dns
+
+    entraSync:
+      enabled: true
+      # -- Name of the Secret containing client-id, client-secret, tenant-id
+      secretName: entra-sync-credentials
+      # -- Object ID of the shared Entra app registration to patch
+      appObjectId: "xxxxxx-xxx-xxxxx-xxxx-xxxxxx"
+      #
+      # -- Create the automation service principal
+      # az ad sp create-for-rbac --name "entra-redirect-sync" \
+      # --years 2 \
+      # --query "{client-id:appId, client-secret:password, tenant-id:tenant}"
+      #
+      #
+      # kubectl create secret generic entra-sync-credentials \
+      # --from-literal=client-id=<appId> \
+      # --from-literal=client-secret=<password> \
+      # --from-literal=tenant-id=<tenant>
+
+    oauth2Proxy:
+      enabled: true
+      image: "quay.io/oauth2-proxy/oauth2-proxy:v7.6.0"
+      tenantId: xxxxxx-xxx-xxxxx-xxxx-xxxxxx
+      # clientSecretName must match a Secret in the namespace containing:
+      #   OAUTH2_PROXY_CLIENT_ID
+      #   OAUTH2_PROXY_CLIENT_SECRET
+      # Pin the cookie secret to avoid session invalidation on helm upgrade:
+      # cookieSecret: <base64-32-random-bytes>
 
     automountServiceAccountToken: false
 
@@ -85,50 +100,8 @@ spec:
 
     resources: {}
 
-    clusterip:
-      enabled: false
-      port: 8080
-      protocol: TCP
-      labels: {}
-
-    ingress:
-      enabled: false
-      ingressClassName: "nginx"
-      host: ~
-      tls: []
-      labels: {}
-      annotations: {}
-
-    route:
-      enabled: false
-      annotations: {}
-      labels: {}
-      hostnames: []
-      parentRefs: []
-
-    persistence:
-      enabled: false
-      # -- use an existing PVC instead of creating a new one
-      existingClaim: ~
-      storageClassName: ~
-      accessModes:
-        - ReadWriteOnce
-      size: 1Gi
-      mountPath: /data
-      annotations: {}
-
     labels: {}
     env: []
     volumeMounts: []
     volumes: []
     initContainers: []
-
-    # -- inline ConfigMaps to create and mount into the container
-    # Each entry creates a ConfigMap and mounts it at mountPath (defaults to /config/<name>)
-    # configMaps:
-    #   - name: myconfig
-    #     mountPath: /config/myconfig  # optional
-    #     data:
-    #       key1: value1
-    #       key2: value2
-    configMaps: []
