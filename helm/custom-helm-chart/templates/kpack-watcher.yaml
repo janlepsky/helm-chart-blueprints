@@ -1,0 +1,139 @@
+{{- if .Values.kpackWatcher.enabled -}}
+{{- $name := include "app.name" . -}}
+{{- $kpackImageName := printf "image-%s" $name -}}
+{{- $watcherName := printf "%s-kpack-watcher" $name -}}
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $watcherName }}
+  namespace: {{ .Release.Namespace }}
+
+---
+# Allows the watcher to read/watch the kpack Image in the kpack namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $watcherName }}
+rules:
+  - apiGroups: ["kpack.io"]
+    resources: ["images"]
+    resourceNames: [{{ $kpackImageName | quote }}]
+    verbs: ["get", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $watcherName }}
+  namespace: kpack
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $watcherName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $watcherName }}
+    namespace: {{ .Release.Namespace }}
+
+---
+# Allows the watcher to restart the Deployment in the app namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $watcherName }}
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: [{{ $name | quote }}]
+    verbs: ["get", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $watcherName }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $watcherName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $watcherName }}
+    namespace: {{ .Release.Namespace }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $watcherName }}-script
+  namespace: {{ .Release.Namespace }}
+data:
+  watch-and-restart.sh: |
+    #!/bin/sh
+    set -eu
+
+    IMAGE_NAME={{ $kpackImageName | quote }}
+    TARGET_DEPLOYMENT={{ $name | quote }}
+    DIGEST_FILE="/tmp/last-digest"
+
+    echo "$(date -Iseconds) watching kpack Image '${IMAGE_NAME}' in namespace 'kpack'"
+
+    while true; do
+      kubectl get image "${IMAGE_NAME}" -n kpack \
+        -o jsonpath='{.status.latestImage}{"\n"}' \
+        --watch-only 2>/dev/null | \
+      while read -r digest; do
+        [ -z "$digest" ] && continue
+        last="$(cat "${DIGEST_FILE}" 2>/dev/null || true)"
+        if [ "$digest" != "$last" ]; then
+          echo "$(date -Iseconds) new build detected: ${digest}"
+          kubectl rollout restart deployment/"${TARGET_DEPLOYMENT}" -n {{ .Release.Namespace | quote }}
+          echo "$digest" > "${DIGEST_FILE}"
+        fi
+      done
+
+      echo "$(date -Iseconds) watch connection closed, reconnecting in 5s..."
+      sleep 5
+    done
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $watcherName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ $watcherName }}
+    app.kubernetes.io/part-of: {{ $name }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $watcherName }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ $watcherName }}
+        app.kubernetes.io/part-of: {{ $name }}
+    spec:
+      serviceAccountName: {{ $watcherName }}
+      automountServiceAccountToken: true
+      containers:
+        - name: watcher
+          image: {{ .Values.kpackWatcher.image }}
+          command: ["/bin/sh", "/scripts/watch-and-restart.sh"]
+          resources:
+            {{- toYaml .Values.kpackWatcher.resources | nindent 12 }}
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      volumes:
+        - name: script
+          configMap:
+            name: {{ $watcherName }}-script
+            defaultMode: 0755
+{{- end }}

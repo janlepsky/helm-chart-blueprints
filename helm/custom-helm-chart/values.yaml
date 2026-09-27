@@ -72,6 +72,20 @@ oauth2Proxy:
   # Pin the cookie secret to avoid session invalidation on helm upgrade:
   # cookieSecret: <base64-32-random-bytes>
 
+kpackWatcher:
+  enabled: false
+  image: registry.k8s.io/kubectl:v1.36.4
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+# NOTE: when kpackWatcher.enabled=true, set image.pullPolicy to Always so
+# the Deployment actually pulls the new image after the rollout restart.
+
 automountServiceAccountToken: false
 
 securityContext:
