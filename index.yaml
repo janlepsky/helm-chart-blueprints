@@ -141,6 +141,24 @@ entries:
   custom-helm-chart:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2026-09-27T17:29:27.577671568Z"
+    description: Provision a custom Helm Chart. Define input values freely. It uses
+      oauth2-proxy as a sidecar.
+    digest: e6e839416cbcbb09b0bf3d591d3005d9139818b019db005b3d2955976dfff557
+    keywords:
+    - helm
+    - custom
+    maintainers:
+    - name: janlepsky
+    name: custom-helm-chart
+    sources:
+    - https://github.com/janlepsky/helm-chart-blueprints
+    type: application
+    urls:
+    - https://github.com/janlepsky/helm-chart-blueprints/releases/download/custom-helm-chart-0.2.0/custom-helm-chart-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2026-09-16T09:58:55.508478577Z"
     description: Provision a custom Helm Chart. Define input values freely. It uses
       oauth2-proxy as a sidecar.
@@ -228,4 +246,4 @@ entries:
     urls:
     - https://github.com/janlepsky/helm-chart-blueprints/releases/download/generic-helm-chart-0.1.0/generic-helm-chart-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-16T09:58:55.508505914Z"
+generated: "2026-09-27T17:29:27.577708045Z"
