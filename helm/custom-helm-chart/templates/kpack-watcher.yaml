@@ -1,6 +1,6 @@
 {{- if .Values.kpackWatcher.enabled -}}
 {{- $name := include "app.name" . -}}
-{{- $kpackImageName := printf "image-%s" $name -}}
+{{- $kpackImageName := printf "image-%s" .Values.application.name -}}
 {{- $watcherName := printf "%s-kpack-watcher" $name -}}
 
 apiVersion: v1
