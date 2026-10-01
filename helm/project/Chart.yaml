@@ -1,0 +1,17 @@
+apiVersion: v2
+name: project
+description: Provision a complete mogenius Project in one step — a private GitHub repo from a template, an Entra-protected example app rolled out via ArgoCD, automatic image build & push (kpack) on every commit, and automated base-image/source updates. Backed by the cluster-scoped lab.mogenius.com Project composite resource.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - project
+  - crossplane
+  - gitops
+  - argocd
+  - kpack
+  - platform
+maintainers:
+  - name: janlepsky
+sources:
+  - https://github.com/janlepsky/helm-chart-blueprints

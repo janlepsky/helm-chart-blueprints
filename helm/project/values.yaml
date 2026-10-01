@@ -1,0 +1,32 @@
+# -- The project / tenant name. REQUIRED.
+# Becomes the namespace name, the GitHub repo name and the prefix of every
+# generated resource. Must be a lowercase DNS name, 3–63 characters.
+projectName: ""
+
+# -- Department this project belongs to.
+# Selects which Entra app the project's users are synced to. Must match a key
+# in the "project-departments" ConfigMap (ns crossplane-system). Default: all.
+department: all
+
+# GitHub repository created for the project.
+github:
+  # -- GitHub organization or user that owns the new repository.
+  owner: mogenius
+  # -- Owner of the template repository to clone from.
+  templateOwner: mogenius
+  # -- Template repository the new repo is created from.
+  templateRepo: gh-custom-template
+  # -- Repository visibility: public | private | internal.
+  visibility: private
+
+# -- Container registry that kpack pushes the built tenant image to.
+registry: ghcr.io/mogenius
+
+# ResourceQuota hard limits for the tenant namespace.
+quota:
+  requestsCpu: "2"
+  requestsMemory: 4Gi
+  limitsCpu: "4"
+  limitsMemory: 8Gi
+  pods: "50"
+  persistentVolumeClaims: "0"

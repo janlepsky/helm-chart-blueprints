@@ -1,0 +1,26 @@
+{{- $name := include "project.name" . -}}
+# The Project is a cluster-scoped Crossplane composite resource (XR). Installing
+# it fans out into a GitHub repo, a kpack Image, an ArgoCD Application and the
+# tenant namespace (quota, limits, network policies) — all named from projectName.
+apiVersion: lab.mogenius.com/v1alpha1
+kind: Project
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "project.labels" . | nindent 4 }}
+spec:
+  projectName: {{ required "A valid .Values.projectName is required (lowercase DNS name, 3–63 chars)" .Values.projectName | lower | quote }}
+  department: {{ .Values.department | quote }}
+  registry: {{ .Values.registry | quote }}
+  github:
+    owner: {{ .Values.github.owner | quote }}
+    templateOwner: {{ .Values.github.templateOwner | quote }}
+    templateRepo: {{ .Values.github.templateRepo | quote }}
+    visibility: {{ .Values.github.visibility | quote }}
+  quota:
+    requestsCpu: {{ .Values.quota.requestsCpu | quote }}
+    requestsMemory: {{ .Values.quota.requestsMemory | quote }}
+    limitsCpu: {{ .Values.quota.limitsCpu | quote }}
+    limitsMemory: {{ .Values.quota.limitsMemory | quote }}
+    pods: {{ .Values.quota.pods | quote }}
+    persistentVolumeClaims: {{ .Values.quota.persistentVolumeClaims | quote }}

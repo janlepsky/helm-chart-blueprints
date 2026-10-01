@@ -1,4 +1,11 @@
 blueprints:
+  - id: project
+    displayName: mogenius Project
+    description: Provision a complete app setup in one step — private GitHub repo, Entra-protected example app via ArgoCD, automatic image build & push on every commit, and automated dependency updates
+    category: platform
+    icon: https://raw.githubusercontent.com/cncf/artwork/main/projects/crossplane/icon/color/crossplane-icon-color.svg
+    tags: [project, gitops, argocd, kpack, crossplane, platform]
+
   - id: container-starter
     displayName: Container Starter
     description: Deploy any container image with just an image, a name and an optional hostname

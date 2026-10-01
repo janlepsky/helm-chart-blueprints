@@ -1,0 +1,22 @@
+mogenius Project "{{ include "project.name" . }}" has been applied.
+
+Crossplane now composes everything for this project. It creates the tenant
+namespace "{{ include "project.name" . }}", a private GitHub repo, a kpack image
+build, and an ArgoCD application that rolls out the Entra-protected example app.
+
+Watch the composite resource come up:
+
+  kubectl get project.lab.mogenius.com {{ include "project.name" . }} -o wide
+
+Wait until it reports SYNCED=True and READY=True:
+
+  kubectl wait --for=condition=Ready \
+    project.lab.mogenius.com/{{ include "project.name" . }} --timeout=10m
+
+Once ready, the relevant endpoints appear in the status:
+
+  kubectl get project.lab.mogenius.com {{ include "project.name" . }} \
+    -o jsonpath='{.status.appUrl}{"\n"}{.status.repoUrl}{"\n"}'
+
+The app URL is Entra-protected and served via ArgoCD + kpack. Every commit to
+the GitHub repo triggers a new image build and an automatic rollout.
