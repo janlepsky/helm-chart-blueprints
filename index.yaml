@@ -282,4 +282,29 @@ entries:
     urls:
     - https://github.com/janlepsky/helm-chart-blueprints/releases/download/generic-helm-chart-0.1.0/generic-helm-chart-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-28T19:16:33.84288953Z"
+  project:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-10-01T08:31:41.475093361Z"
+    description: Provision a complete mogenius Project in one step — a private GitHub
+      repo from a template, an Entra-protected example app rolled out via ArgoCD,
+      automatic image build & push (kpack) on every commit, and automated base-image/source
+      updates. Backed by the cluster-scoped lab.mogenius.com Project composite resource.
+    digest: 0de9d9bd6562b3f4c3b46ab269591f0a7125321aa6bd777ff2e7e0fea477d8d7
+    keywords:
+    - project
+    - crossplane
+    - gitops
+    - argocd
+    - kpack
+    - platform
+    maintainers:
+    - name: janlepsky
+    name: project
+    sources:
+    - https://github.com/janlepsky/helm-chart-blueprints
+    type: application
+    urls:
+    - https://github.com/janlepsky/helm-chart-blueprints/releases/download/project-0.1.0/project-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-10-01T08:31:41.475122194Z"
