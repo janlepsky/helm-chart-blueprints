@@ -45,11 +45,16 @@ subjects:
 
 ---
 {{- if not .Values.deployFailureReporter.githubRepo }}
-# Allows the reporter to read the kpack Image's git source to derive the GitHub repo
+{{- $kpackReaderName := printf "%s-%s" .Release.Namespace $reporterName }}
+# Allows the reporter to read the kpack Image's git source to derive the GitHub repo.
+# Named per-tenant-namespace: ClusterRole/RoleBinding-in-kpack are cluster-wide
+# and shared-namespace resources, and every tenant renders this chart with the
+# same release name, so a name derived only from $reporterName would collide
+# across tenants and each sync would overwrite the previous tenant's grant.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ $reporterName }}
+  name: {{ $kpackReaderName }}
 rules:
   - apiGroups: ["kpack.io"]
     resources: ["images"]
@@ -60,12 +65,12 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ $reporterName }}
+  name: {{ $kpackReaderName }}
   namespace: kpack
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: {{ $reporterName }}
+  name: {{ $kpackReaderName }}
 subjects:
   - kind: ServiceAccount
     name: {{ $reporterName }}
