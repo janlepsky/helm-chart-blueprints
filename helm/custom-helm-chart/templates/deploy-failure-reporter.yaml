@@ -1,0 +1,221 @@
+{{- if .Values.deployFailureReporter.enabled -}}
+{{- $name := include "app.name" . -}}
+{{- $reporterName := printf "%s-deploy-failure-reporter" $name -}}
+{{- $kpackImageName := printf "image-%s" .Values.application.name -}}
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $reporterName }}
+  namespace: {{ .Release.Namespace }}
+
+---
+# Allows the reporter to inspect the Deployment's rollout and gather debug info
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $reporterName }}
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: [{{ $name | quote }}]
+    verbs: ["get", "watch"]
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $reporterName }}
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $reporterName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $reporterName }}
+    namespace: {{ .Release.Namespace }}
+
+---
+{{- if not .Values.deployFailureReporter.githubRepo }}
+# Allows the reporter to read the kpack Image's git source to derive the GitHub repo
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $reporterName }}
+rules:
+  - apiGroups: ["kpack.io"]
+    resources: ["images"]
+    resourceNames: [{{ $kpackImageName | quote }}]
+    verbs: ["get"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $reporterName }}
+  namespace: kpack
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $reporterName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ $reporterName }}
+    namespace: {{ .Release.Namespace }}
+
+---
+{{- end }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $reporterName }}-script
+  namespace: {{ .Release.Namespace }}
+data:
+  watch-and-report.sh: |
+    #!/bin/sh
+    set -eu
+
+    APP={{ $name | quote }}
+    NS={{ .Release.Namespace | quote }}
+    GITHUB_REPO={{ .Values.deployFailureReporter.githubRepo | quote }}
+    KPACK_IMAGE_NAME={{ $kpackImageName | quote }}
+    LAST_GENERATION_FILE="/tmp/last-reported-generation"
+
+    # Falls back to deriving "owner/repo" from the kpack Image's git source
+    # when deployFailureReporter.githubRepo is not set explicitly.
+    resolve_github_repo() {
+      [ -n "$GITHUB_REPO" ] && return
+      git_url="$(kubectl get image "${KPACK_IMAGE_NAME}" -n kpack -o jsonpath='{.spec.source.git.url}' 2>/dev/null || true)"
+      if [ -z "$git_url" ]; then
+        echo "$(date -Iseconds) WARNING: could not read kpack Image '${KPACK_IMAGE_NAME}' git url and deployFailureReporter.githubRepo is unset; issue reporting disabled" >&2
+        return
+      fi
+      case "$git_url" in
+        *github.com*)
+          GITHUB_REPO="$(echo "$git_url" | sed -E 's#.*github\.com[:/]##; s#\.git$##; s#/+$##')"
+          echo "$(date -Iseconds) derived GitHub repo '${GITHUB_REPO}' from kpack Image git source"
+          ;;
+        *)
+          echo "$(date -Iseconds) WARNING: kpack Image git source '${git_url}' is not a github.com URL; issue reporting disabled" >&2
+          ;;
+      esac
+    }
+    resolve_github_repo
+
+    echo "$(date -Iseconds) watching rollout status for deployment '${APP}' in namespace '${NS}'"
+
+    while true; do
+      kubectl get deployment "${APP}" -n "${NS}" \
+        -o jsonpath='{.metadata.generation}{"\n"}' \
+        --watch-only 2>/dev/null | \
+      while read -r generation; do
+        [ -z "$generation" ] && continue
+        last="$(cat "${LAST_GENERATION_FILE}" 2>/dev/null || true)"
+        [ "$generation" = "$last" ] && continue
+        echo "$generation" > "${LAST_GENERATION_FILE}"
+
+        echo "$(date -Iseconds) new rollout detected (generation ${generation}), watching status..."
+        if ! kubectl rollout status deployment/"${APP}" -n "${NS}" --timeout=5m; then
+          {
+            echo "Deployment: ${APP}"
+            echo "Namespace: ${NS}"
+            echo "Generation: ${generation}"
+            echo ""
+            echo '## Pod status'
+            echo '```'
+            kubectl get pods -n "${NS}" -l app.kubernetes.io/name="${APP}" -o wide
+            echo '```'
+            echo ""
+            echo '## Describe'
+            echo '```'
+            kubectl describe pods -n "${NS}" -l app.kubernetes.io/name="${APP}" | tail -n 80
+            echo '```'
+            echo ""
+            echo '## Logs (previous container)'
+            echo '```'
+            kubectl logs -n "${NS}" -l app.kubernetes.io/name="${APP}" --previous --tail=100 2>&1 || echo "(no previous container logs available)"
+            echo '```'
+            echo ""
+            echo '## Events'
+            echo '```'
+            kubectl get events -n "${NS}" --sort-by=.lastTimestamp | tail -n 50
+            echo '```'
+          } | head -c 60000 > /tmp/report.md
+
+          if [ -z "$GITHUB_REPO" ]; then
+            echo "$(date -Iseconds) no GitHub repo resolved, skipping issue creation; report saved at /tmp/report.md"
+          else
+            title="Deploy failed for ${APP} (generation ${generation})"
+            body="$(cat /tmp/report.md)"
+
+            json_payload="$(printf '%s' "$body" | python3 -c 'import json, sys; print(json.dumps({"title": sys.argv[1], "body": sys.stdin.read()}))' "$title")"
+
+            curl -sS -X POST \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/${GITHUB_REPO}/issues" \
+              -d "$json_payload" > /tmp/issue-response.json || true
+
+            echo "$(date -Iseconds) filed GitHub issue: $(python3 -c 'import json;print(json.load(open("/tmp/issue-response.json")).get("html_url","unknown"))' 2>/dev/null || echo unknown)"
+          fi
+        else
+          echo "$(date -Iseconds) rollout succeeded"
+        fi
+      done
+
+      echo "$(date -Iseconds) watch connection closed, reconnecting in 5s..."
+      sleep 5
+    done
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $reporterName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ $reporterName }}
+    app.kubernetes.io/part-of: {{ $name }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $reporterName }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ $reporterName }}
+        app.kubernetes.io/part-of: {{ $name }}
+    spec:
+      serviceAccountName: {{ $reporterName }}
+      automountServiceAccountToken: true
+      containers:
+        - name: reporter
+          image: {{ .Values.deployFailureReporter.image }}
+          command: ["/bin/sh", "/scripts/watch-and-report.sh"]
+          env:
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.deployFailureReporter.githubTokenSecretName }}
+                  key: token
+          resources:
+            {{- toYaml .Values.deployFailureReporter.resources | nindent 12 }}
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+      volumes:
+        - name: script
+          configMap:
+            name: {{ $reporterName }}-script
+            defaultMode: 0755
+{{- end }}

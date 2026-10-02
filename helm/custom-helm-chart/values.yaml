@@ -86,6 +86,27 @@ kpackWatcher:
 # NOTE: when kpackWatcher.enabled=true, set image.pullPolicy to Always so
 # the Deployment actually pulls the new image after the rollout restart.
 
+deployFailureReporter:
+  enabled: false
+  image: alpine/k8s:1.32.9
+  # -- "owner/repo" to file issues against. Leave unset to auto-derive it from
+  # the kpack Image's spec.source.git.url (requires kpackWatcher's Image to
+  # have a github.com git source; falls back to no issue creation otherwise).
+  githubRepo: ~
+  # -- Name of a Secret in this namespace with a "token" key (a GitHub PAT
+  # with "issues:write" on githubRepo)
+  #
+  # kubectl create secret generic deploy-failure-reporter-github-app \
+  # --from-literal=token=<pat>
+  githubTokenSecretName: deploy-failure-reporter-github-app
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
 automountServiceAccountToken: false
 
 securityContext:
