@@ -20,7 +20,7 @@ rules:
   - apiGroups: ["apps"]
     resources: ["deployments"]
     resourceNames: [{{ $name | quote }}]
-    verbs: ["get", "watch"]
+    verbs: ["get", "list", "watch"]
   - apiGroups: [""]
     resources: ["pods", "pods/log"]
     verbs: ["get", "list"]
