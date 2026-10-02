@@ -94,11 +94,8 @@ deployFailureReporter:
   # have a github.com git source; falls back to no issue creation otherwise).
   githubRepo: ~
   # -- Name of a Secret in this namespace with a "token" key (a GitHub PAT
-  # with "issues:write" on githubRepo)
-  #
-  # kubectl create secret generic deploy-failure-reporter-github-app \
-  # --from-literal=token=<pat>
-  githubTokenSecretName: deploy-failure-reporter-github-app
+  # or GitHub App installation token with "issues:write" on githubRepo)
+  githubTokenSecretName: deploy-failure-reporter-github-token
   resources:
     requests:
       cpu: 10m
