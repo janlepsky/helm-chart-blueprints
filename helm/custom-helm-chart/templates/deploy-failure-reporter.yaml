@@ -175,13 +175,17 @@ data:
             if [ -z "$json_payload" ]; then
               echo "$(date -Iseconds) WARNING: failed to build issue payload, skipping issue creation; report saved at /tmp/report.md"
             else
-              curl -sS -X POST \
+              http_status="$(curl -sS -o /tmp/issue-response.json -w '%{http_code}' -X POST \
                 -H "Authorization: Bearer ${GITHUB_TOKEN}" \
                 -H "Accept: application/vnd.github+json" \
                 "https://api.github.com/repos/${GITHUB_REPO}/issues" \
-                -d "$json_payload" > /tmp/issue-response.json 2>/dev/null || true
+                -d "$json_payload" 2>/dev/null || true)"
 
-              echo "$(date -Iseconds) filed GitHub issue: $(python3 -c 'import json;print(json.load(open("/tmp/issue-response.json")).get("html_url","unknown"))' 2>/dev/null || echo unknown)"
+              if [ "$http_status" = "201" ]; then
+                echo "$(date -Iseconds) filed GitHub issue: $(python3 -c 'import json;print(json.load(open("/tmp/issue-response.json")).get("html_url","unknown"))' 2>/dev/null || echo unknown)"
+              else
+                echo "$(date -Iseconds) ERROR: GitHub issue creation failed (HTTP ${http_status:-unknown}): $(cat /tmp/issue-response.json 2>/dev/null || echo '(no response body)')"
+              fi
             fi
           fi
         else
