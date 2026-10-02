@@ -118,9 +118,13 @@ data:
     echo "$(date -Iseconds) watching rollout status for deployment '${APP}' in namespace '${NS}'"
 
     while true; do
+      # --watch (not --watch-only) so the first line is the deployment's
+      # CURRENT generation (an initial ADDED event), not just future changes --
+      # otherwise a deployment that's already stuck in a crash loop before this
+      # pod starts is never evaluated, since its generation never changes again.
       kubectl get deployment "${APP}" -n "${NS}" \
         -o jsonpath='{.metadata.generation}{"\n"}' \
-        --watch-only 2>/dev/null | \
+        --watch 2>/dev/null | \
       while read -r generation; do
         [ -z "$generation" ] && continue
         last="$(cat "${LAST_GENERATION_FILE}" 2>/dev/null || true)"
