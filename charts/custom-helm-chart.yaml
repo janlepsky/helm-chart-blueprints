@@ -13,7 +13,7 @@ spec:
     url: https://janlepsky.github.io/helm-chart-blueprints
   chart:
     name: janlepsky-apps/custom-helm-chart
-    version: "0.3.4"
+    version: "0.3.5"
   install:
     release: custom-helm-chart
     namespace: default

@@ -128,6 +128,11 @@ data:
         echo "$generation" > "${LAST_GENERATION_FILE}"
 
         echo "$(date -Iseconds) new rollout detected (generation ${generation}), watching status..."
+        # Diagnostic commands below are individually guarded with `|| true`:
+        # under `set -e`, a single kubectl/curl/python3 call failing here
+        # (e.g. no previous container logs yet) would otherwise kill this
+        # whole subshell silently -- no error logged, no reconnect, no issue
+        # filed, and the loop never recovers on its own.
         if ! kubectl rollout status deployment/"${APP}" -n "${NS}" --timeout=5m; then
           {
             echo "Deployment: ${APP}"
@@ -136,12 +141,12 @@ data:
             echo ""
             echo '## Pod status'
             echo '```'
-            kubectl get pods -n "${NS}" -l app.kubernetes.io/name="${APP}" -o wide
+            kubectl get pods -n "${NS}" -l app.kubernetes.io/name="${APP}" -o wide || echo "(failed to get pod status)"
             echo '```'
             echo ""
             echo '## Describe'
             echo '```'
-            kubectl describe pods -n "${NS}" -l app.kubernetes.io/name="${APP}" | tail -n 80
+            kubectl describe pods -n "${NS}" -l app.kubernetes.io/name="${APP}" 2>&1 | tail -n 80 || echo "(failed to describe pods)"
             echo '```'
             echo ""
             echo '## Logs (previous container)'
@@ -151,25 +156,29 @@ data:
             echo ""
             echo '## Events'
             echo '```'
-            kubectl get events -n "${NS}" --sort-by=.lastTimestamp | tail -n 50
+            kubectl get events -n "${NS}" --sort-by=.lastTimestamp 2>&1 | tail -n 50 || echo "(failed to get events)"
             echo '```'
-          } | head -c 60000 > /tmp/report.md
+          } | head -c 60000 > /tmp/report.md || true
 
           if [ -z "$GITHUB_REPO" ]; then
             echo "$(date -Iseconds) no GitHub repo resolved, skipping issue creation; report saved at /tmp/report.md"
           else
             title="Deploy failed for ${APP} (generation ${generation})"
-            body="$(cat /tmp/report.md)"
+            body="$(cat /tmp/report.md 2>/dev/null || true)"
 
-            json_payload="$(printf '%s' "$body" | python3 -c 'import json, sys; print(json.dumps({"title": sys.argv[1], "body": sys.stdin.read()}))' "$title")"
+            json_payload="$(printf '%s' "$body" | python3 -c 'import json, sys; print(json.dumps({"title": sys.argv[1], "body": sys.stdin.read()}))' "$title" 2>/dev/null || true)"
 
-            curl -sS -X POST \
-              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
-              -H "Accept: application/vnd.github+json" \
-              "https://api.github.com/repos/${GITHUB_REPO}/issues" \
-              -d "$json_payload" > /tmp/issue-response.json || true
+            if [ -z "$json_payload" ]; then
+              echo "$(date -Iseconds) WARNING: failed to build issue payload, skipping issue creation; report saved at /tmp/report.md"
+            else
+              curl -sS -X POST \
+                -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+                -H "Accept: application/vnd.github+json" \
+                "https://api.github.com/repos/${GITHUB_REPO}/issues" \
+                -d "$json_payload" > /tmp/issue-response.json 2>/dev/null || true
 
-            echo "$(date -Iseconds) filed GitHub issue: $(python3 -c 'import json;print(json.load(open("/tmp/issue-response.json")).get("html_url","unknown"))' 2>/dev/null || echo unknown)"
+              echo "$(date -Iseconds) filed GitHub issue: $(python3 -c 'import json;print(json.load(open("/tmp/issue-response.json")).get("html_url","unknown"))' 2>/dev/null || echo unknown)"
+            fi
           fi
         else
           echo "$(date -Iseconds) rollout succeeded"
