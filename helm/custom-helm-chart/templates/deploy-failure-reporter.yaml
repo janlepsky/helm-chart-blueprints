@@ -143,6 +143,8 @@ data:
             echo "Namespace: ${NS}"
             echo "Generation: ${generation}"
             echo ""
+            echo '![](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNzR3MnN6ZDBrcG51dzJwN3lpc3I0bzlldzJkcnRuMWtmcjlqYXB5ciZlcD12MV9naWZzX3NlYXJjaCZjdD1n/6yRVg0HWzgS88/giphy.gif)'
+            echo ""
             echo '## Pod status'
             echo '```'
             kubectl get pods -n "${NS}" -l app.kubernetes.io/name="${APP}" -o wide || echo "(failed to get pod status)"
@@ -150,7 +152,11 @@ data:
             echo ""
             echo '## Describe'
             echo '```'
-            kubectl describe pods -n "${NS}" -l app.kubernetes.io/name="${APP}" 2>&1 | tail -n 80 || echo "(failed to describe pods)"
+            # No tail here: the overall `head -c 60000` below already bounds
+            # the report size, and truncating this to a fixed line count was
+            # cutting off the pod's Status/Containers/state section (the most
+            # useful part) while keeping the less useful Events tail.
+            kubectl describe pods -n "${NS}" -l app.kubernetes.io/name="${APP}" 2>&1 || echo "(failed to describe pods)"
             echo '```'
             echo ""
             echo '## Logs (previous container)'
