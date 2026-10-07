@@ -114,6 +114,9 @@ spec:
         name: {{ $.Values.argocd.destinationName }}
         namespace: 'preview-{{ include "pe.branchNs" $ }}'
       syncPolicy:
+        managedNamespaceMetadata:
+          labels:
+            {{ $.Values.kyverno.previewNamespaceLabel }}: "true"
         automated:
           prune: true
           selfHeal: true

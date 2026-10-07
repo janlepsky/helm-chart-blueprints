@@ -1,0 +1,74 @@
+{{- if and .Values.kyverno.autoJoinWorkspace .Values.ui.workspace.enabled }}
+# Kyverno "mutate existing" policy: when a preview namespace (labelled by the
+# ApplicationSet's managedNamespaceMetadata) is created, append it to the preview
+# Workspace's spec.resources so the preview shows up grouped in the mogenius UI.
+# Dedup via a precondition that checks the namespace isn't already listed.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: {{ .Release.Name }}-workspace-autojoin
+  labels:
+    {{- include "pe.labels" . | nindent 4 }}
+  annotations:
+    policies.kyverno.io/title: Preview namespace → Workspace auto-join
+    policies.kyverno.io/category: mogenius
+spec:
+  # Admission-triggered; the background controller performs the actual patch.
+  # Also reconcile already-existing preview namespaces when the policy is (re)applied.
+  mutateExistingOnPolicyUpdate: true
+  rules:
+    - name: add-preview-namespace-to-workspace
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+              selector:
+                matchLabels:
+                  {{ .Values.kyverno.previewNamespaceLabel }}: "true"
+      preconditions:
+        all:
+          - key: "{{ include "pe.k.op" . }}"
+            operator: AnyIn
+            value:
+              - CREATE
+              - UPDATE
+              - BACKGROUND
+          # Skip if the namespace is already bound to the workspace (dedup).
+          - key: "{{ include "pe.k.nsName" . }}"
+            operator: AnyNotIn
+            value: "{{ include "pe.k.targetIds" . }}"
+      mutate:
+        targets:
+          - apiVersion: mogenius.com/v1alpha1
+            kind: Workspace
+            name: {{ .Values.ui.workspace.name }}
+            namespace: {{ .Values.ui.workspaceNamespace | default "mogenius" }}
+        patchesJson6902: |-
+          - op: add
+            path: "/spec/resources/-"
+            value:
+              type: namespace
+              id: "{{ include "pe.k.nsName" . }}"
+---
+# Kyverno's background controller may only touch resources it is granted. This
+# aggregated ClusterRole lets it update the mogenius Workspace CR.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Release.Name }}-kyverno-workspace-writer
+  labels:
+    rbac.kyverno.io/aggregate-to-background-controller: "true"
+    {{- include "pe.labels" . | nindent 4 }}
+rules:
+  - apiGroups:
+      - mogenius.com
+    resources:
+      - workspaces
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+{{- end }}

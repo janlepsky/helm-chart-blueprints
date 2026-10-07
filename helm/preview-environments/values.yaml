@@ -96,3 +96,17 @@ ui:
     # -- Create a (non-default) WorkspaceDashboard for the preview Workspace.
     enabled: true
     name: preview-environments
+
+# ── Kyverno: auto-join preview namespaces to the Workspace ──────────────────
+# Solves the dynamic-binding gap: the Workspace cannot wildcard-bind per-PR
+# namespaces, so a Kyverno "mutate existing" policy appends each preview namespace
+# to the Workspace's spec.resources as it is created. Requires Kyverno installed
+# on the cluster (blueprint: kyverno).
+kyverno:
+  # -- Create the ClusterPolicy + RBAC that auto-join preview namespaces to the
+  # preview Workspace. Needs ui.workspace.enabled and Kyverno on the cluster.
+  autoJoinWorkspace: true
+  # -- Label applied to preview namespaces (via ArgoCD managedNamespaceMetadata)
+  # and matched by the policy. Always set on the namespaces regardless of the
+  # toggle above (harmless when Kyverno is absent).
+  previewNamespaceLabel: mogenius.com/preview
