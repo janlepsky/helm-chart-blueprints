@@ -21,10 +21,10 @@ What got created
 
 How a preview appears
   1. Open a PR on a watched repo and add the "{{ .Values.github.label }}" label.
-  2. CI builds & pushes the image to {{ .Values.preview.registry }}.
+  2. CI builds & pushes {{ .Values.preview.registry }}/<repo>:<head-short-sha>.
   3. ArgoCD's pullRequest generator creates Application preview-<repo>-pr-<n>
      and deploys into namespace preview-<branch>, exposed at
-     <repo>-pr-<n>-{frontend,backend}.{{ .Values.preview.domain }}.
+     <repo>-pr-<n>.{{ .Values.preview.domain }}.
   4. Close the PR → the environment is pruned automatically.
 
 Prerequisites on the cluster

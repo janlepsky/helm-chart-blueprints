@@ -24,30 +24,24 @@ github:
   tokenSecretKey: password
   # -- How often (seconds) the generator re-checks GitHub for PR changes.
   requeueAfterSeconds: 60
-  # -- Repositories to watch. isBackend selects which image gets the PR's build;
-  # the other tier falls back to preview.fallbackTag.
+  # -- Repositories to watch. Each labelled PR gets ONE preview of that repo's
+  # app. `port` is the container port the app listens on (exposed as :80).
+  # The image pushed by CI must be ghcr.io/<owner>/<name>:<head-short-sha>.
   repos:
     - name: off-backend-boilerplate
-      isBackend: true
+      port: 3000
     - name: off-frontend-boilerplate
-      isBackend: false
+      port: 80
 
 # ── Preview deployment / exposure ──────────────────────────────────────────
 preview:
-  # -- Base domain. Hosts become <repo>-pr-<n>-{frontend,backend}.<domain>.
+  # -- Base domain. The preview host becomes <repo>-pr-<n>.<domain>.
   domain: demo.janlepsky.com
-  # -- Container registry the CI pipelines push preview images to.
+  # -- Container registry the CI pipelines push preview images to. The image
+  # name equals the repo name, tagged with the PR head short SHA.
   registry: ghcr.io/janlepsky
-  # -- Image tag used for the tier that is NOT the PR's own repo.
-  fallbackTag: "0.0.1"
   # -- Name of the image pull secret mounted into every preview namespace.
   imagePullSecretName: image-pull-secret-ghcr-u4qo1g
-  backend:
-    imageName: preview-demo-backend
-    targetPort: 3000
-  frontend:
-    imageName: preview-demo-frontend
-    targetPort: 80
 
 # ── ArgoCD ─────────────────────────────────────────────────────────────────
 argocd:

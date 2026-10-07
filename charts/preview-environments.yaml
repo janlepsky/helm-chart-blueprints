@@ -13,7 +13,7 @@ spec:
     url: https://janlepsky.github.io/helm-chart-blueprints
   chart:
     name: janlepsky-apps/preview-environments
-    version: "0.1.0"
+    version: "0.1.1"
   install:
     release: preview-environments
     namespace: mogenius-argo-cd
@@ -23,14 +23,14 @@ spec:
       owner: janlepsky
       # PR label that triggers a preview environment.
       label: preview
-      # Repos to watch (isBackend selects which tier gets the PR's build).
+      # Repos to watch (port = the app's container port, exposed as :80).
       repos:
         - name: off-backend-boilerplate
-          isBackend: true
+          port: 3000
         - name: off-frontend-boilerplate
-          isBackend: false
+          port: 80
 
     preview:
-      # Base domain: <repo>-pr-<n>-{frontend,backend}.<domain>
+      # Preview host: <repo>-pr-<n>.<domain>
       domain: demo.janlepsky.com
       registry: ghcr.io/janlepsky
