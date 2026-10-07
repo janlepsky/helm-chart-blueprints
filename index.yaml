@@ -444,6 +444,31 @@ entries:
     urls:
     - https://github.com/janlepsky/helm-chart-blueprints/releases/download/generic-helm-chart-0.1.0/generic-helm-chart-0.1.0.tgz
     version: 0.1.0
+  preview-environments:
+  - apiVersion: v2
+    appVersion: 1.0.0
+    created: "2026-10-07T09:44:24.621067746Z"
+    description: Per-pull-request preview environments for one or more GitHub repos,
+      driven by an ArgoCD ApplicationSet (pullRequest generator) and surfaced natively
+      in the mogenius UI (UIConfig + Workspace + Dashboard). Each labelled PR gets
+      its own namespace, hosts and TLS; closing the PR tears it down.
+    digest: c9051e5794afb7ac0b86fcb056347f96753fc410276cca5f0ffd9a5f33d1df2e
+    keywords:
+    - preview
+    - pull-request
+    - gitops
+    - argocd
+    - applicationset
+    - mogenius
+    maintainers:
+    - name: janlepsky
+    name: preview-environments
+    sources:
+    - https://github.com/janlepsky/helm-chart-blueprints
+    type: application
+    urls:
+    - https://github.com/janlepsky/helm-chart-blueprints/releases/download/preview-environments-0.1.0/preview-environments-0.1.0.tgz
+    version: 0.1.0
   project:
   - apiVersion: v2
     appVersion: 1.0.0
@@ -469,4 +494,4 @@ entries:
     urls:
     - https://github.com/janlepsky/helm-chart-blueprints/releases/download/project-0.1.0/project-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-02T12:45:09.267536781Z"
+generated: "2026-10-07T09:44:24.621145722Z"
