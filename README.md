@@ -8,6 +8,7 @@ Pre-configured Helm chart blueprints for the [mogenius](https://mogenius.com) pl
 
 | Blueprint | Category | Chart |
 |---|---|---|
+| Agent Sandbox | AI/ML | `mogenius/mogenius-agent-sandbox` |
 | Container | Miscellaneous | `janlepsky-apps/container` (own generic chart) |
 | Crossplane Workspace — Azure RG | Infrastructure | `janlepsky-apps/crossplane-workspace` (own generic chart) |
 | cert-manager | Security | `jetstack/cert-manager` |
