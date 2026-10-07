@@ -1,0 +1,43 @@
+preview-environments installed as release "{{ .Release.Name }}".
+
+What got created
+  • ApplicationSet "{{ .Release.Name }}" in namespace {{ .Values.argocd.namespace }}
+    — one preview env per open PR labelled "{{ .Values.github.label }}" on:
+{{- range .Values.github.repos }}
+        - {{ $.Values.github.owner }}/{{ .name }}
+{{- end }}
+{{- if .Values.ui.applicationSetUIConfig }}
+  • UIConfig applicationset.argoproj.io  (ApplicationSet editable in the mogenius UI)
+{{- end }}
+{{- if .Values.ui.applicationUIConfig }}
+  • UIConfig application.argoproj.io      (generated Applications shown in the UI)
+{{- end }}
+{{- if .Values.ui.workspace.enabled }}
+  • Workspace "{{ .Values.ui.workspace.name }}" (ns {{ .Values.ui.workspaceNamespace | default "mogenius" }})
+{{- end }}
+{{- if .Values.ui.dashboard.enabled }}
+  • WorkspaceDashboard "{{ .Values.ui.dashboard.name }}" (default: false)
+{{- end }}
+
+How a preview appears
+  1. Open a PR on a watched repo and add the "{{ .Values.github.label }}" label.
+  2. CI builds & pushes the image to {{ .Values.preview.registry }}.
+  3. ArgoCD's pullRequest generator creates Application preview-<repo>-pr-<n>
+     and deploys into namespace preview-<branch>, exposed at
+     <repo>-pr-<n>-{frontend,backend}.{{ .Values.preview.domain }}.
+  4. Close the PR → the environment is pruned automatically.
+
+Prerequisites on the cluster
+  • ArgoCD installed in {{ .Values.argocd.namespace }} (blueprint: argocd)
+  • Secret "{{ .Values.github.tokenSecretName }}" (key {{ .Values.github.tokenSecretKey }}) in {{ .Values.argocd.namespace }}
+    — a GitHub token with repo access for the pullRequest generator
+{{- if .Values.imagePullSecret.enabled }}
+  • Sealed Secrets controller (the image pull secret is delivered as a SealedSecret)
+{{- end }}
+  • An ingress controller ({{ .Values.ingress.className }}) and cert-manager ClusterIssuer "{{ .Values.ingress.clusterIssuer }}"
+
+Note on the Workspace view
+  There is no wildcard binding for the dynamic per-PR namespaces. The Workspace
+  scopes to the ArgoCD namespace by default (the preview control plane). To see a
+  specific running preview's workloads, open its preview-<branch> namespace in the
+  cluster resource view, or add it to ui.workspace.resources.

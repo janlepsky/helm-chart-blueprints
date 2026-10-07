@@ -1,0 +1,177 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Values.argocd.namespace }}
+  labels:
+    managed-by: mogenius
+    {{- include "pe.labels" . | nindent 4 }}
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+{{- range .Values.github.repos }}
+    - matrix:
+        generators:
+          - list:
+              elements:
+                - repoName: {{ .name }}
+                  isBackend: {{ .isBackend | quote }}
+          - pullRequest:
+              github:
+                owner: {{ $.Values.github.owner }}
+                repo: '{{ include "pe.repoName" $ }}'
+                labels:
+                  - {{ $.Values.github.label }}
+                tokenRef:
+                  secretName: {{ $.Values.github.tokenSecretName }}
+                  key: {{ $.Values.github.tokenSecretKey }}
+              requeueAfterSeconds: {{ $.Values.github.requeueAfterSeconds }}
+{{- end }}
+  template:
+    metadata:
+      name: 'preview-{{ include "pe.repoName" . }}-pr-{{ include "pe.number" . }}'
+      labels:
+        managed-by: mogenius
+        preview: "true"
+      annotations:
+        notifications.argoproj.io/subscribe.on-deployed.github: "{{ .Values.github.owner }}/{{ include "pe.repoName" . }}"
+        preview.mogenius.com/frontend-host: "{{ include "pe.repoName" . }}-pr-{{ include "pe.number" . }}-frontend.{{ .Values.preview.domain }}"
+        preview.mogenius.com/backend-host: "{{ include "pe.repoName" . }}-pr-{{ include "pe.number" . }}-backend.{{ .Values.preview.domain }}"
+        preview.mogenius.com/pr-number: "{{ include "pe.number" . }}"
+    spec:
+      project: {{ .Values.argocd.project }}
+      source:
+        repoURL: {{ .Values.moac.repoURL }}
+        targetRevision: {{ .Values.moac.version | quote }}
+        chart: {{ .Values.moac.chart }}
+        helm:
+          releaseName: 'preview-{{ include "pe.number" . }}'
+          valuesObject:
+            services:
+              - {{ .Values.preview.backend.imageName }}:
+                  ports:
+                    - name: http
+                      port: 80
+                      protocol: TCP
+                      targetPort: {{ .Values.preview.backend.targetPort }}
+                  selector:
+                    app: {{ .Values.preview.backend.imageName }}
+                  type: ClusterIP
+              - {{ .Values.preview.frontend.imageName }}:
+                  ports:
+                    - name: http
+                      port: 80
+                      protocol: TCP
+                      targetPort: {{ .Values.preview.frontend.targetPort }}
+                  selector:
+                    app: {{ .Values.preview.frontend.imageName }}
+                  type: ClusterIP
+            ingresses:
+              - ingress-{{ .Values.preview.frontend.imageName }}:
+                  annotations:
+                    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+                  ingressClassName: {{ .Values.ingress.className }}
+                  rules:
+                    - host: '{{ include "pe.repoName" . }}-pr-{{ include "pe.number" . }}-frontend.{{ .Values.preview.domain }}'
+                      http:
+                        paths:
+                          - backend:
+                              service:
+                                name: {{ .Values.preview.frontend.imageName }}
+                                port:
+                                  number: 80
+                            path: /
+                            pathType: Prefix
+                  tls:
+                    - hosts:
+                        - '{{ include "pe.repoName" . }}-pr-{{ include "pe.number" . }}-frontend.{{ .Values.preview.domain }}'
+                      secretName: 'preview-{{ include "pe.repoName" . }}-pr-{{ include "pe.number" . }}-frontend-tls'
+              - ingress-{{ .Values.preview.backend.imageName }}:
+                  annotations:
+                    cert-manager.io/cluster-issuer: {{ .Values.ingress.clusterIssuer }}
+                  ingressClassName: {{ .Values.ingress.className }}
+                  rules:
+                    - host: '{{ include "pe.repoName" . }}-pr-{{ include "pe.number" . }}-backend.{{ .Values.preview.domain }}'
+                      http:
+                        paths:
+                          - backend:
+                              service:
+                                name: {{ .Values.preview.backend.imageName }}
+                                port:
+                                  number: 80
+                            path: /
+                            pathType: Prefix
+                  tls:
+                    - hosts:
+                        - '{{ include "pe.repoName" . }}-pr-{{ include "pe.number" . }}-backend.{{ .Values.preview.domain }}'
+                      secretName: 'preview-{{ include "pe.repoName" . }}-pr-{{ include "pe.number" . }}-backend-tls'
+            rawResources:
+{{- if .Values.imagePullSecret.enabled }}
+              - apiVersion: bitnami.com/v1alpha1
+                kind: SealedSecret
+                metadata:
+                  annotations:
+                    sealedsecrets.bitnami.com/cluster-wide: {{ .Values.imagePullSecret.clusterWide | quote }}
+                  name: {{ .Values.preview.imagePullSecretName }}
+                spec:
+                  encryptedData:
+                    .dockerconfigjson: {{ .Values.imagePullSecret.sealedDockerConfigJson }}
+                  template:
+                    metadata:
+                      annotations:
+                        sealedsecrets.bitnami.com/cluster-wide: {{ .Values.imagePullSecret.clusterWide | quote }}
+                      name: {{ .Values.preview.imagePullSecretName }}
+                    type: kubernetes.io/dockerconfigjson
+{{- end }}
+              - apiVersion: apps/v1
+                kind: Deployment
+                metadata:
+                  name: {{ .Values.preview.backend.imageName }}
+                spec:
+                  replicas: 1
+                  selector:
+                    matchLabels:
+                      app: {{ .Values.preview.backend.imageName }}
+                  template:
+                    metadata:
+                      labels:
+                        app: {{ .Values.preview.backend.imageName }}
+                    spec:
+                      containers:
+                        - name: {{ .Values.preview.backend.imageName }}
+                          image: '{{ .Values.preview.registry }}/{{ .Values.preview.backend.imageName }}:{{ `{{if eq .isBackend "true"}}{{.head_short_sha}}{{else}}` }}{{ .Values.preview.fallbackTag }}{{ `{{end}}` }}'
+                          imagePullPolicy: Always
+                      imagePullSecrets:
+                        - name: {{ .Values.preview.imagePullSecretName }}
+              - apiVersion: apps/v1
+                kind: Deployment
+                metadata:
+                  name: {{ .Values.preview.frontend.imageName }}
+                spec:
+                  replicas: 1
+                  selector:
+                    matchLabels:
+                      app: {{ .Values.preview.frontend.imageName }}
+                  template:
+                    metadata:
+                      labels:
+                        app: {{ .Values.preview.frontend.imageName }}
+                    spec:
+                      containers:
+                        - name: {{ .Values.preview.frontend.imageName }}
+                          image: '{{ .Values.preview.registry }}/{{ .Values.preview.frontend.imageName }}:{{ `{{if eq .isBackend "false"}}{{.head_short_sha}}{{else}}` }}{{ .Values.preview.fallbackTag }}{{ `{{end}}` }}'
+                          imagePullPolicy: Always
+                      imagePullSecrets:
+                        - name: {{ .Values.preview.imagePullSecretName }}
+      destination:
+        name: {{ .Values.argocd.destinationName }}
+        namespace: 'preview-{{ include "pe.branchNs" . }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: true
+        syncOptions:
+          - CreateNamespace=true

@@ -1,0 +1,33 @@
+{{- if .Values.ui.dashboard.enabled }}
+apiVersion: mogenius.com/v1alpha1
+kind: WorkspaceDashboard
+metadata:
+  name: {{ .Values.ui.dashboard.name }}
+  # WorkspaceDashboards are resolved from the `mogenius` namespace.
+  namespace: {{ .Values.ui.workspaceNamespace | default "mogenius" }}
+  labels:
+    {{- include "pe.labels" . | nindent 4 }}
+spec:
+  # MUST stay false — the shared `mogenius/default` dashboard is the global
+  # default for every app and must not be overridden.
+  default: false
+  dashboardHeader:
+    enabled: true
+  resourceOverview:
+    enabled: true
+  resourceTables:
+    - header: Preview Generators
+      resources:
+        - apiVersion: argoproj.io/v1alpha1
+          kind: ApplicationSet
+    - header: Preview Applications
+      resources:
+        - apiVersion: argoproj.io/v1alpha1
+          kind: Application
+    - header: Preview Workloads
+      resources:
+        - apiVersion: apps/v1
+          kind: Deployment
+        - apiVersion: networking.k8s.io/v1
+          kind: Ingress
+{{- end }}

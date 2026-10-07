@@ -1,0 +1,25 @@
+{{- if .Values.ui.workspace.enabled }}
+apiVersion: mogenius.com/v1alpha1
+kind: Workspace
+metadata:
+  name: {{ .Values.ui.workspace.name }}
+  namespace: {{ .Values.ui.workspaceNamespace | default "mogenius" }}
+  labels:
+    {{- include "pe.labels" . | nindent 4 }}
+spec:
+  name: {{ .Values.ui.workspace.displayName | default .Values.ui.workspace.name | quote }}
+  {{- if .Values.ui.dashboard.enabled }}
+  dashboardRef: {{ .Values.ui.dashboard.name }}
+  {{- end }}
+  resources:
+  {{- if .Values.ui.workspace.resources }}
+    {{- toYaml .Values.ui.workspace.resources | nindent 4 }}
+  {{- else }}
+    # No wildcard binding exists for dynamic per-PR namespaces, so the workspace
+    # scopes to the ArgoCD namespace: the ApplicationSet and every generated
+    # preview Application show up here as the preview control plane. The live
+    # per-PR workloads live in dynamic preview-<branch> namespaces — see NOTES.
+    - type: namespace
+      id: {{ .Values.argocd.namespace }}
+  {{- end }}
+{{- end }}

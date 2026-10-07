@@ -1,0 +1,104 @@
+# preview-environments — per-PR preview deployments via ArgoCD + native mogenius UI.
+#
+# The chart renders four things (each toggleable):
+#   1. an ArgoCD ApplicationSet with a GitHub pullRequest generator (one env per
+#      labelled PR, per watched repo)
+#   2. a UIConfig that makes the ApplicationSet editable in the mogenius UI
+#   3. a UIConfig that surfaces the generated ArgoCD Applications in the UI
+#   4. a Workspace + WorkspaceDashboard that groups the preview apps
+#
+# The preview app itself is an opinionated two-tier (backend + frontend) demo
+# shape, matching the preview-demo boilerplates. Names, ports, domain, registry
+# and secrets are all configurable below.
+
+# ── GitHub source ──────────────────────────────────────────────────────────
+github:
+  # -- GitHub org/user that owns the watched repositories.
+  owner: janlepsky
+  # -- PR label that triggers a preview environment.
+  label: preview
+  # -- Secret (in the ArgoCD namespace) holding the GitHub token the pullRequest
+  # generator uses to poll for open PRs.
+  tokenSecretName: preview-demo-gitops
+  # -- Key inside that secret.
+  tokenSecretKey: password
+  # -- How often (seconds) the generator re-checks GitHub for PR changes.
+  requeueAfterSeconds: 60
+  # -- Repositories to watch. isBackend selects which image gets the PR's build;
+  # the other tier falls back to preview.fallbackTag.
+  repos:
+    - name: off-backend-boilerplate
+      isBackend: true
+    - name: off-frontend-boilerplate
+      isBackend: false
+
+# ── Preview deployment / exposure ──────────────────────────────────────────
+preview:
+  # -- Base domain. Hosts become <repo>-pr-<n>-{frontend,backend}.<domain>.
+  domain: demo.janlepsky.com
+  # -- Container registry the CI pipelines push preview images to.
+  registry: ghcr.io/janlepsky
+  # -- Image tag used for the tier that is NOT the PR's own repo.
+  fallbackTag: "0.0.1"
+  # -- Name of the image pull secret mounted into every preview namespace.
+  imagePullSecretName: image-pull-secret-ghcr-u4qo1g
+  backend:
+    imageName: preview-demo-backend
+    targetPort: 3000
+  frontend:
+    imageName: preview-demo-frontend
+    targetPort: 80
+
+# ── ArgoCD ─────────────────────────────────────────────────────────────────
+argocd:
+  # -- Namespace ArgoCD (and the ApplicationSet) live in.
+  namespace: mogenius-argo-cd
+  # -- ArgoCD AppProject the generated Applications belong to.
+  project: mogenius
+  # -- ArgoCD destination cluster name.
+  destinationName: in-cluster
+
+# ── moac render chart (turns valuesObject into raw K8s objects) ─────────────
+moac:
+  repoURL: https://helm.mogenius.com/public
+  chart: moac
+  version: "1.2.3"
+
+# ── Ingress / TLS ──────────────────────────────────────────────────────────
+ingress:
+  className: traefik
+  clusterIssuer: letsencrypt-cluster-issuer
+
+# ── Image pull secret delivered into each preview namespace (SealedSecret) ──
+imagePullSecret:
+  # -- Create the SealedSecret in every preview namespace. Set false if you
+  # provide the pull secret another way.
+  enabled: true
+  # -- Sealed (encrypted) .dockerconfigjson produced by kubeseal for the target
+  # cluster. The default below is the value from the original preview-demo setup.
+  sealedDockerConfigJson: "AgCxJ11j7N8qCx98wghL28r3TBU3xDbiwJ+1G2cXBcZ51uY7iyqtjHYAPN1v0POEqLOyf+IH+mDig9xyRFLfQ54gsl8GAmsA7oEEGU6+xHqvn0Ans36PR2EzZd1bdvEOWhOHVF9zsK6hN0G7woL8CyIXrvCOyms6kCT+WMx0YUlv+xiCQ2X/0HRAyhDNXgpYEmqI2h0a6M/rAEEOW5tRABhcdlm+lnZukLIJ6ivuILfPp6Bkqysu3uAAuMbap9SgKm+mXchpDW7iIGTdbGVHO7sh+Gudd76tmTHPsu5xdjV9vEjRHgBdavCFgbW65xlKzBJBW4e1l/gOfqBIx0O9ejgL+olI0v+Y8OXwmBlMOMipCq/Am883WysbDXzPcbCXZddaVj0+dqPI1sUN4iFe4OAONj7Vd00/H3uR+KC7vNXFGDmDrJ0NQ8F49eiBYAhjje77wAikUPdXJnJpcR+R01Wiz7PIZNxng+h1Ykmzr4s3Yn+mUnJa+G1UJ2qXEmpxQ2cVtt/ci1kWJXFzDgBax9hiucv93nxGAtIshlxsSq72IyDet+Zo9yGK/ZLNQdQwnpcOL7wDE4SmGd3ori8PUpumI2D1xB0ah63TD0VmX7JfvNFslPRPjHKtUKZoPM26KfCXAU1Cy9jD0sD4kUMmEtQNzjt+kB923G83y1oOoZeY21m2wnexG1oOH362xPbx8MGT/uGW7HsH6/Z9N2djcuWsicVVMS2rQtqOb6YX11fW0ZmM0c24RqOAU+ENIobFTE+GGh0k5R3f814GMS97Gn/blp6O9PlA9KzK0FVFusAfg/UD+SFleKIZv6+a6lYIYs1STIPEBKzTuqyqLVkM5fRrD/i7kgCYOLXnSIUhIMjUaf6vnf3Unk9SfD6azecXnjmMZwLIWsKTK4JeNtwJPHlRyxnEgdISXh2JRg4ezyuhjJ1q"
+  # -- Mark the SealedSecret cluster-wide so the same ciphertext decrypts in any namespace.
+  clusterWide: true
+
+# ── mogenius UI surfacing ──────────────────────────────────────────────────
+ui:
+  # -- UIConfig making the ApplicationSet editable in the mogenius UI.
+  applicationSetUIConfig: true
+  # -- UIConfig surfacing the generated ArgoCD Applications in the mogenius UI.
+  applicationUIConfig: true
+  # -- Namespace the Workspace + WorkspaceDashboard are created in. The operator
+  # resolves WorkspaceDashboards from the `mogenius` namespace — leave as is.
+  workspaceNamespace: mogenius
+  workspace:
+    # -- Create a Workspace that groups the preview namespaces/apps.
+    enabled: true
+    name: preview-environments
+    displayName: Preview Environments
+    # -- Explicit resource bindings ({type,id,namespace}). Empty => scope to the
+    # ArgoCD namespace (shows the ApplicationSet + generated preview Apps).
+    # type is one of: namespace | helm | argocd | flux.
+    resources: []
+  dashboard:
+    # -- Create a (non-default) WorkspaceDashboard for the preview Workspace.
+    enabled: true
+    name: preview-environments

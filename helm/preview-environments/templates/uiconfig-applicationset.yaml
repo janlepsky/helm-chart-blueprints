@@ -1,0 +1,45 @@
+{{- if .Values.ui.applicationSetUIConfig }}
+apiVersion: mogenius.com/v1alpha1
+kind: UIConfig
+metadata:
+  name: applicationset.argoproj.io
+  labels:
+    {{- include "pe.labels" . | nindent 4 }}
+spec:
+  displayName: ArgoCD ApplicationSet
+  isCustomized: true
+  reference:
+    apiVersion: argoproj.io/v1alpha1
+    kind: ApplicationSet
+  schema:
+    sections:
+      - label: Metadata
+        fields:
+          - key: metadata.name
+            label: Name
+            type: string
+            required: true
+          - key: metadata.namespace
+            label: Namespace
+            type: string
+            required: true
+            default: {{ .Values.argocd.namespace }}
+
+      - label: Generators
+        description: ApplicationSet generators (e.g. a GitHub pullRequest generator for preview environments)
+        fields:
+          - key: spec.generators
+            label: Generators
+            type: yaml
+
+      - label: Template
+        description: The Application template rendered once per generated element
+        fields:
+          - key: spec.goTemplate
+            label: Use goTemplate
+            type: boolean
+            default: true
+          - key: spec.template
+            label: Template
+            type: yaml
+{{- end }}

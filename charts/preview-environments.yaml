@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: HelmBlueprint
+metadata:
+  id: preview-environments
+  displayName: Preview Environments
+  description: Per-pull-request preview environments for one or more GitHub repos — an ArgoCD ApplicationSet (pullRequest generator) spins up an isolated namespace, hosts and TLS for every labelled PR and tears it down on close. Surfaced natively in the mogenius UI via UIConfig + Workspace + Dashboard.
+  category: gitops
+  icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
+  tags: [preview, pull-request, gitops, argocd, applicationset, mogenius]
+spec:
+  repository:
+    name: janlepsky-apps
+    url: https://janlepsky.github.io/helm-chart-blueprints
+  chart:
+    name: janlepsky-apps/preview-environments
+    version: "0.1.0"
+  install:
+    release: preview-environments
+    namespace: mogenius-argo-cd
+  values: |
+    # GitHub org that owns the watched repos.
+    github:
+      owner: janlepsky
+      # PR label that triggers a preview environment.
+      label: preview
+      # Repos to watch (isBackend selects which tier gets the PR's build).
+      repos:
+        - name: off-backend-boilerplate
+          isBackend: true
+        - name: off-frontend-boilerplate
+          isBackend: false
+
+    preview:
+      # Base domain: <repo>-pr-<n>-{frontend,backend}.<domain>
+      domain: demo.janlepsky.com
+      registry: ghcr.io/janlepsky
