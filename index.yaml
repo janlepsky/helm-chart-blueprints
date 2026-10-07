@@ -166,3 +166,52 @@ blueprints:
     category: security
     icon: https://raw.githubusercontent.com/jhaals/yopass/master/logo/yopass.svg
     tags: [secrets, security, encryption, passwords, sharing]
+
+  - id: preview-environments
+    displayName: Preview Environments
+    description: Per-pull-request preview environments for one or more GitHub repos — an ArgoCD ApplicationSet (pullRequest generator) spins up an isolated namespace, hosts and TLS for every labelled PR and tears it down on close. Surfaced natively in the mogenius UI via UIConfig + Workspace + Dashboard.
+    category: gitops
+    icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
+    tags: [preview, pull-request, gitops, argocd, applicationset, mogenius]
+
+  - id: mogenius-ui-kubernetes
+    displayName: mogenius UI for Kubernetes
+    description: Web UI for managing Kubernetes workloads through the mogenius platform
+    category: ui-components
+    icon: https://avatars.githubusercontent.com/u/92862356
+    tags: [mogenius, ui, kubernetes, dashboard]
+
+  - id: mogenius-integration-argocd
+    displayName: mogenius ArgoCD Integration
+    description: Connects mogenius with Argo CD to surface GitOps application state in the mogenius UI
+    category: ui-components
+    icon: https://avatars.githubusercontent.com/u/92862356
+    tags: [mogenius, argocd, gitops, integration]
+
+  - id: mogenius-integration-renovate-operator
+    displayName: mogenius Renovate Operator Integration
+    description: Connects mogenius with the Renovate Operator to surface dependency update status in the mogenius UI
+    category: ui-components
+    icon: https://avatars.githubusercontent.com/u/92862356
+    tags: [mogenius, renovate, dependencies, integration]
+
+  - id: mogenius-integration-cnpg
+    displayName: mogenius CloudNativePG Integration
+    description: Connects mogenius with CloudNativePG to surface Postgres cluster state in the mogenius UI
+    category: ui-components
+    icon: https://avatars.githubusercontent.com/u/92862356
+    tags: [mogenius, cnpg, postgres, database, integration]
+
+  - id: mogenius-integration-external-secrets
+    displayName: mogenius External Secrets Integration
+    description: Connects mogenius with the External Secrets Operator to surface secret sync state in the mogenius UI
+    category: ui-components
+    icon: https://avatars.githubusercontent.com/u/92862356
+    tags: [mogenius, external-secrets, secrets, integration]
+
+  - id: mogenius-integration-fluxcd
+    displayName: mogenius Flux CD Integration
+    description: Connects mogenius with Flux CD to surface GitOps reconciliation state in the mogenius UI
+    category: ui-components
+    icon: https://avatars.githubusercontent.com/u/92862356
+    tags: [mogenius, fluxcd, gitops, integration]
