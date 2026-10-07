@@ -14,8 +14,6 @@ metadata:
     policies.kyverno.io/category: mogenius
 spec:
   # Admission-triggered; the background controller performs the actual patch.
-  # Also reconcile already-existing preview namespaces when the policy is (re)applied.
-  mutateExistingOnPolicyUpdate: true
   rules:
     - name: add-preview-namespace-to-workspace
       match:
@@ -26,18 +24,14 @@ spec:
               selector:
                 matchLabels:
                   {{ .Values.kyverno.previewNamespaceLabel }}: "true"
+      # Fire once, on namespace creation. The ArgoCD-created preview namespace
+      # already carries the label at CREATE time, so a single append happens per
+      # namespace lifetime (no dedup needed for the normal create → teardown flow).
       preconditions:
         all:
           - key: "{{ include "pe.k.op" . }}"
-            operator: AnyIn
-            value:
-              - CREATE
-              - UPDATE
-              - BACKGROUND
-          # Skip if the namespace is already bound to the workspace (dedup).
-          - key: "{{ include "pe.k.nsName" . }}"
-            operator: AnyNotIn
-            value: "{{ include "pe.k.targetIds" . }}"
+            operator: Equals
+            value: CREATE
       mutate:
         targets:
           - apiVersion: mogenius.com/v1alpha1
